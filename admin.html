@@ -61,16 +61,17 @@
         window.location.href = "index.html";
     }
 
+    // --- BURAYI 'arabalar' YAPTIK ---
     function ilanlariYukle() {
-    db.ref().on('value', (snapshot) => {
-        console.log("TÜM VERİTABANI:", snapshot.val()); // Veritabanında ne varsa konsola döker
-        if(snapshot.exists()){
-            console.log("İlanlar klasörü içeriği:", snapshot.child('ilanlar').val());
-        } else {
-            console.log("Veritabanı tamamen boş!");
-        }
-    });
-}
+        db.ref('arabalar').on('value', (snapshot) => {
+            const liste = document.getElementById('adminListe');
+            liste.innerHTML = "";
+            let sayac = 0;
+
+            if(!snapshot.exists()) {
+                liste.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:#555;">Pazarda hiç ilan yok...</td></tr>`;
+                document.getElementById('istatistik').innerText = "Sistemdeki Toplam İlan: 0";
+                return;
             }
 
             snapshot.forEach((childSnapshot) => {
@@ -78,7 +79,8 @@
                 const key = childSnapshot.key;
                 sayac++;
                 
-                const resimSrc = araba.foto || araba.resim || "https://via.placeholder.com/60x40/222/555?text=Resim+Yok";
+                // Resim linki bozuksa varsayılan bir görsel koyar
+                const resimSrc = araba.foto || "https://via.placeholder.com/60x40/222/555?text=Yok";
                 
                 liste.innerHTML += `
                     <tr>
@@ -90,19 +92,20 @@
                     </tr>`;
             });
             document.getElementById('istatistik').innerText = "Sistemdeki Toplam İlan: " + sayac;
-        }, (error) => {
-            console.error("Firebase Hatası:", error);
-            alert("Veriler çekilemedi!");
         });
     }
 
+    // --- ARŞİVLEME FONKSİYONU ---
     function ilaniArsivle(key) {
         if(confirm("Bu ilan pazardan çekilecek ve arşive eklenecek. Onaylıyor musun başkan?")) {
-            db.ref('ilanlar/' + key).once('value').then((snapshot) => {
+            // Önce 'arabalar' klasöründen veriyi çek
+            db.ref('arabalar/' + key).once('value').then((snapshot) => {
                 if(snapshot.exists()) {
                     const veri = snapshot.val();
+                    // 'arsiv' klasörüne kopyala
                     db.ref('arsiv/' + key).set(veri).then(() => {
-                        db.ref('ilanlar/' + key).remove().then(() => {
+                        // Sonra ana listeden sil
+                        db.ref('arabalar/' + key).remove().then(() => {
                             alert("İlan başarıyla arşive kaldırıldı!");
                         });
                     });
@@ -115,4 +118,3 @@
 </script>
 </body>
 </html>
-
