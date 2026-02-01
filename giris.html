@@ -3,32 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CPM Pazar | Giriş & Kayıt</title>
+    <title>CPM Pazar | Giriş Yap</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #ffcc00; width: 320px; text-align: center; }
+        body { background: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #ffcc00; width: 320px; text-align: center; box-shadow: 0 0 20px rgba(255, 204, 0, 0.2); }
+        h2 { color: #ffcc00; margin-bottom: 20px; }
         input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; outline: none; }
-        button { width: 100%; padding: 12px; background: #ffcc00; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .switch { font-size: 13px; color: #888; margin-top: 20px; cursor: pointer; text-decoration: underline; }
-        #adminArea { display: none; }
+        input:focus { border-color: #ffcc00; }
+        button { width: 100%; padding: 12px; background: #ffcc00; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        button:hover { background: #e6b800; }
+        .link { font-size: 13px; color: #888; margin-top: 20px; display: block; text-decoration: none; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h2 id="title" style="color:#ffcc00;">Giriş Yap</h2>
+    <h2>Giriş Yap</h2>
     <input type="text" id="user" placeholder="Kullanıcı Adı">
     <input type="password" id="pass" placeholder="Şifre">
-    <div id="adminArea">
-        <input type="text" id="aCode" placeholder="Admin Kodu (car123)">
-    </div>
-    <button id="mainBtn" onclick="run()">GİRİŞ YAP</button>
-    <p class="switch" id="toggle" onclick="changeMode()">Hesabın yok mu? Kayıt Ol</p>
+
+    <button onclick="girisYap()">GİRİŞ YAP</button>
+    <a href="kayit.html" class="link">Hesabın yok mu? Kayıt Ol</a>
 </div>
 
 <script>
+    // Firebase Ayarları (Senin ayarlarınla aynı)
     const firebaseConfig = {
         apiKey: "AIzaSyCDq7tCjNddgyEa-E3uYWLXNDY05f-bzzY",
         authDomain: "cpm-market-6d2cb.firebaseapp.com",
@@ -41,52 +42,35 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let mode = "login";
 
-    function changeMode() {
-        if(mode === "login") {
-            mode = "reg";
-            document.getElementById('title').innerText = "Kayıt Ol";
-            document.getElementById('mainBtn').innerText = "KAYIT OL";
-            document.getElementById('toggle').innerText = "Hesabın var mı? Giriş Yap";
-            document.getElementById('adminArea').style.display = "block";
-        } else {
-            mode = "login";
-            document.getElementById('title').innerText = "Giriş Yap";
-            document.getElementById('mainBtn').innerText = "GİRİŞ YAP";
-            document.getElementById('toggle').innerText = "Hesabın yok mu? Kayıt Ol";
-            document.getElementById('adminArea').style.display = "none";
-        }
-    }
-
-    function run() {
+    function girisYap() {
         const u = document.getElementById('user').value.trim().toLowerCase();
         const p = document.getElementById('pass').value;
-        const code = document.getElementById('aCode').value;
 
-        if(!u || !p) return alert("Boş bırakma kanka!");
+        if(!u || !p) return alert("Bilgileri gir kanka!");
 
-        if(mode === "reg") {
-            db.ref('kullanicilar/' + u).get().then((s) => {
-                if(s.exists()) return alert("Bu isim alınmış!");
+        // Firebase'den bu kullanıcıyı çek
+        db.ref('kullanicilar/' + u).get().then((s) => {
+            if(s.exists()) {
+                const veriler = s.val();
                 
-                let r = (code === "car123") ? "admin" : "user";
-                db.ref('kullanicilar/' + u).set({sifre:p, rol:r}).then(() => {
-                    alert("Kayıt tamam! Şimdi giriş yap.");
-                    changeMode();
-                });
-            });
-        } else {
-            db.ref('kullanicilar/' + u).get().then((s) => {
-                if(s.exists() && s.val().sifre === p) {
+                // Şifre kontrolü
+                if(veriler.sifre === p) {
+                    // Oturumu tarayıcıya kaydet
                     localStorage.setItem('oturum', u);
-                    localStorage.setItem('rol', s.val().rol);
-                    window.location.href = "index.html";
+                    localStorage.setItem('rol', veriler.rol);
+                    
+                    alert("Giriş başarılı! Yönlendiriliyorsun...");
+                    window.location.href = "index.html"; // Ana sayfaya uçur
                 } else {
-                    alert("Kullanıcı adı veya şifre yanlış!");
+                    alert("Şifre hatalı kral!");
                 }
-            });
-        }
+            } else {
+                alert("Böyle bir kullanıcı yok. Önce kayıt ol!");
+            }
+        }).catch(err => {
+            alert("Sistem hatası: " + err.message);
+        });
     }
 </script>
 </body>
