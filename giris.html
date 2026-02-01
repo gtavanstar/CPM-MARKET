@@ -8,32 +8,27 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         body { background: #0a0a0a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #ffcc00; width: 320px; text-align: center; box-shadow: 0 0 20px rgba(255, 204, 0, 0.2); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { border-color: #ffcc00; }
-        button { width: 100%; padding: 12px; background: #ffcc00; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        button:hover { background: #e6b800; transform: scale(1.02); }
+        .box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #ffcc00; width: 320px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; outline: none; }
+        button { width: 100%; padding: 12px; background: #ffcc00; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .switch { font-size: 13px; color: #888; margin-top: 20px; cursor: pointer; text-decoration: underline; }
-        #adminKodAlani { display: none; margin-top: 5px; border-top: 1px solid #222; padding-top: 5px; }
+        #adminArea { display: none; }
     </style>
 </head>
 <body>
 
-<div class="login-box">
-    <h2 id="baslik" style="color:#ffcc00; margin-bottom: 20px;">Giriş Yap</h2>
+<div class="box">
+    <h2 id="title" style="color:#ffcc00;">Giriş Yap</h2>
     <input type="text" id="user" placeholder="Kullanıcı Adı">
     <input type="password" id="pass" placeholder="Şifre">
-    
-    <div id="adminKodAlani">
-        <input type="text" id="adminCode" placeholder="Admin Kayıt Kodu (Boş Bırakabilirsin)">
+    <div id="adminArea">
+        <input type="text" id="aCode" placeholder="Admin Kodu (car123)">
     </div>
-
-    <button id="anaBtn" onclick="islemYap()">GİRİŞ YAP</button>
-    <p class="switch" id="modDegis" onclick="moduDegistir()">Hesabın yok mu? Kayıt Ol</p>
+    <button id="mainBtn" onclick="run()">GİRİŞ YAP</button>
+    <p class="switch" id="toggle" onclick="changeMode()">Hesabın yok mu? Kayıt Ol</p>
 </div>
 
 <script>
-    // Firebase Ayarların
     const firebaseConfig = {
         apiKey: "AIzaSyCDq7tCjNddgyEa-E3uYWLXNDY05f-bzzY",
         authDomain: "cpm-market-6d2cb.firebaseapp.com",
@@ -45,63 +40,48 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    let mod = "login";
+    const db = firebase.database();
+    let mode = "login";
 
-    // Giriş ve Kayıt Arasında Geçiş Yapma
-    function moduDegistir() {
-        const kodAlani = document.getElementById('adminKodAlani');
-        if(mod === "login") {
-            mod = "register";
-            document.getElementById('baslik').innerText = "Kayıt Ol";
-            document.getElementById('anaBtn').innerText = "KAYIT OL";
-            document.getElementById('modDegis').innerText = "Zaten hesabın var mı? Giriş Yap";
-            kodAlani.style.display = "block"; // Kutuyu göster
+    function changeMode() {
+        if(mode === "login") {
+            mode = "reg";
+            document.getElementById('title').innerText = "Kayıt Ol";
+            document.getElementById('mainBtn').innerText = "KAYIT OL";
+            document.getElementById('toggle').innerText = "Hesabın var mı? Giriş Yap";
+            document.getElementById('adminArea').style.display = "block";
         } else {
-            mod = "login";
-            document.getElementById('baslik').innerText = "Giriş Yap";
-            document.getElementById('anaBtn').innerText = "GİRİŞ YAP";
-            document.getElementById('modDegis').innerText = "Hesabın yok mu? Kayıt Ol";
-            kodAlani.style.display = "none"; // Kutuyu gizle
+            mode = "login";
+            document.getElementById('title').innerText = "Giriş Yap";
+            document.getElementById('mainBtn').innerText = "GİRİŞ YAP";
+            document.getElementById('toggle').innerText = "Hesabın yok mu? Kayıt Ol";
+            document.getElementById('adminArea').style.display = "none";
         }
     }
 
-    // Giriş veya Kayıt İşlemi
-    function islemYap() {
+    function run() {
         const u = document.getElementById('user').value.trim().toLowerCase();
         const p = document.getElementById('pass').value;
-        const aCode = document.getElementById('adminCode').value;
+        const code = document.getElementById('aCode').value;
 
-        if(!u || !p) return alert("Kullanıcı adı ve şifre zorunlu!");
+        if(!u || !p) return alert("Boş bırakma kanka!");
 
-        if(mod === "register") {
-            database.ref('kullanicilar/' + u).get().then((snap) => {
-                if(snap.exists()) {
-                    alert("Bu isim zaten kullanılıyor!");
-                } else {
-                    // Admin kodu kontrolü
-                    let rol = "user";
-                    if(aCode === "313131") { // Senin admin kodun
-                        rol = "admin";
-                        alert("Vay, admin yetkisiyle gelmişsin hoş geldin!");
-                    }
-
-                    database.ref('kullanicilar/' + u).set({
-                        sifre: p,
-                        rol: rol
-                    }).then(() => {
-                        alert("Kayıt Başarılı! Şimdi giriş yapabilirsin.");
-                        moduDegistir(); // Giriş ekranına at
-                    });
-                }
+        if(mode === "reg") {
+            db.ref('kullanicilar/' + u).get().then((s) => {
+                if(s.exists()) return alert("Bu isim alınmış!");
+                
+                let r = (code === "car123") ? "admin" : "user";
+                db.ref('kullanicilar/' + u).set({sifre:p, rol:r}).then(() => {
+                    alert("Kayıt tamam! Şimdi giriş yap.");
+                    changeMode();
+                });
             });
         } else {
-            // Giriş Yapma Mantığı
-            database.ref('kullanicilar/' + u).get().then((snap) => {
-                if(snap.exists() && snap.val().sifre === p) {
+            db.ref('kullanicilar/' + u).get().then((s) => {
+                if(s.exists() && s.val().sifre === p) {
                     localStorage.setItem('oturum', u);
-                    localStorage.setItem('rol', snap.val().rol);
-                    window.location.href = "index.html"; // Ana sayfaya git
+                    localStorage.setItem('rol', s.val().rol);
+                    window.location.href = "index.html";
                 } else {
                     alert("Kullanıcı adı veya şifre yanlış!");
                 }
