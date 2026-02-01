@@ -10,7 +10,8 @@
         body { background: #0a0a0a; color: white; font-family: sans-serif; padding: 20px; display: flex; justify-content: center; }
         .form-container { width: 100%; max-width: 400px; background: #111; padding: 25px; border-radius: 15px; border: 1px solid #ffcc00; }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; outline: none; }
-        button { background: #ffcc00; color: #000; font-weight: bold; border: none; cursor: pointer; margin-top: 15px; }
+        button { background: #ffcc00; color: #000; font-weight: bold; border: none; cursor: pointer; margin-top: 15px; transition: 0.3s; }
+        button:hover { background: #e6b800; }
         .back { color: #888; text-align: center; display: block; text-decoration: none; font-size: 13px; margin-top: 10px; }
     </style>
 </head>
@@ -43,22 +44,31 @@
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    const girisYapan = localStorage.getItem('oturum');
+    const girisYapan = localStorage.getItem('oturum') || "Anonim";
 
     function yayinla() {
-        const b = document.getElementById('baslik').value;
-        const f = document.getElementById('fiyat').value;
-        const k = document.getElementById('km').value;
-        const fo = document.getElementById('foto').value;
+        const b = document.getElementById('baslik').value.trim();
+        const f = document.getElementById('fiyat').value.trim();
+        const k = document.getElementById('km').value.trim();
+        const fo = document.getElementById('foto').value.trim();
         const e = document.getElementById('etiket').value;
 
-        if(!b || !f || !k) return alert("Eksikleri doldur kanka!");
+        if(!b || !f || !k) return alert("Başlık, Fiyat ve ID kısımlarını doldur kanka!");
 
-        database.ref('arabalar').push({
-            baslik: b, fiyat: f, km: k, foto: fo, etiket: e, sahibi: girisYapan
+        // DİKKAT: Artık 'ilanlar' klasörüne kaydediyoruz ki Admin Paneli ile aynı olsun!
+        database.ref('ilanlar').push({
+            baslik: b,
+            fiyat: f,
+            km: k,
+            foto: fo,
+            etiket: e,
+            sahibi: girisYapan,
+            tarih: Date.now()
         }).then(() => {
-            alert("İlan Yayında!");
+            alert("İlan Yayında! Admin panelinden kontrol edebilirsin.");
             window.location.href = "index.html";
+        }).catch(err => {
+            alert("Hata oluştu: " + err.message);
         });
     }
 </script>
