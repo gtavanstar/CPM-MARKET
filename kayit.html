@@ -54,9 +54,10 @@
                 alert("Bu kullanıcı adı zaten alınmış!");
             } else {
                 let rol = "user";
-                if(aCode === "car123") { // Senin gizli admin kodun
+                // YENİ ADMIN KODUN BURADA: car123
+                if(aCode === "car123") { 
                     rol = "admin";
-                    alert("Admin yetkisi tanımlandı!");
+                    alert("Admin yetkisi tanımlandı! Hoş geldin başkan.");
                 }
 
                 database.ref('kullanicilar/' + u).set({
@@ -72,5 +73,6 @@
 </script>
 </body>
 </html>
+
 
 
