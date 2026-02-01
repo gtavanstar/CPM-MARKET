@@ -1,22 +1,20 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <link rel="icon" type="image/jpeg" href="favicon.jpg">
     <meta charset="UTF-8">
     <title>Car Parking | ADMIN PANEL</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        body { background: #050505; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        body { background: #050505; color: white; font-family: sans-serif; padding: 20px; }
         .admin-kutu { background: #111; border: 2px solid #ff4444; border-radius: 10px; padding: 20px; max-width: 1000px; margin: 0 auto; }
-        h1 { color: #ff4444; text-align: center; text-transform: uppercase; margin-bottom: 20px; }
+        h1 { color: #ff4444; text-align: center; text-transform: uppercase; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #161616; }
         th, td { border: 1px solid #333; padding: 12px; text-align: left; }
         th { background: #222; color: #ffcc00; }
         .btn-arsiv { background: #ffaa00; color: black; border: none; padding: 8px 15px; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        .btn-arsiv:hover { background: #e69900; }
-        .btn-geri { background: #333; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; margin-bottom: 20px; border-radius: 5px; font-weight: bold; }
-        img { border-radius: 4px; object-fit: cover; border: 1px solid #333; }
+        .btn-geri { background: #333; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; margin-bottom: 20px; border-radius: 5px; }
+        img { border-radius: 4px; object-fit: cover; background: #222; }
     </style>
 </head>
 <body>
@@ -25,9 +23,9 @@
     
     <div class="admin-kutu">
         <h1>🛡️ Sistem Yönetim Paneli</h1>
-        <div id="istatistik" style="margin-bottom: 20px; color: #888; font-weight: bold; background: #1a1a1a; padding: 10px; border-radius: 5px;">Yükleniyor...</div>
+        <div id="istatistik" style="margin-bottom: 20px; color: #888;">Yükleniyor...</div>
         
-        <table id="adminTablo">
+        <table>
             <thead>
                 <tr>
                     <th>Görsel</th>
@@ -55,22 +53,15 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const kullaniciRolu = localStorage.getItem('rol');
-    if(kullaniciRolu !== 'admin') {
-        alert("Burası senin boyunu aşar kanka!");
-        window.location.href = "index.html";
-    }
-
-    // --- BURAYI 'arabalar' YAPTIK ---
     function ilanlariYukle() {
+        // BURASI ÇOK ÖNEMLİ: 'arabalar' klasörüne bakıyoruz!
         db.ref('arabalar').on('value', (snapshot) => {
             const liste = document.getElementById('adminListe');
             liste.innerHTML = "";
             let sayac = 0;
 
             if(!snapshot.exists()) {
-                liste.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:#555;">Pazarda hiç ilan yok...</td></tr>`;
-                document.getElementById('istatistik').innerText = "Sistemdeki Toplam İlan: 0";
+                liste.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px;">İlan bulunamadı kanka.</td></tr>`;
                 return;
             }
 
@@ -79,37 +70,26 @@
                 const key = childSnapshot.key;
                 sayac++;
                 
-                // Resim linki bozuksa varsayılan bir görsel koyar
-                const resimSrc = araba.foto || "https://via.placeholder.com/60x40/222/555?text=Yok";
+                // Resim hatası için alternatif link ekledim
+                const resimSrc = araba.foto || "https://dummyimage.com/60x40/333/fff&text=Resim+Yok";
                 
                 liste.innerHTML += `
                     <tr>
-                        <td><img src="${resimSrc}" width="60" height="40"></td>
+                        <td><img src="${resimSrc}" width="60" height="40" onerror="this.src='https://dummyimage.com/60x40/333/fff&text=Hata'"></td>
                         <td>${araba.baslik || "Başlıksız"}</td>
                         <td style="color:#ffcc00; font-weight:bold;">${araba.fiyat || "0"}</td>
                         <td>@${araba.sahibi || "Bilinmiyor"}</td>
-                        <td><button class="btn-arsiv" onclick="ilaniArsivle('${key}')">ARŞİVE KALDIR</button></td>
+                        <td><button class="btn-arsiv" onclick="ilaniArsivle('${key}')">SİL / ARŞİVLE</button></td>
                     </tr>`;
             });
-            document.getElementById('istatistik').innerText = "Sistemdeki Toplam İlan: " + sayac;
+            document.getElementById('istatistik').innerText = "Toplam İlan: " + sayac;
         });
     }
 
-    // --- ARŞİVLEME FONKSİYONU ---
     function ilaniArsivle(key) {
-        if(confirm("Bu ilan pazardan çekilecek ve arşive eklenecek. Onaylıyor musun başkan?")) {
-            // Önce 'arabalar' klasöründen veriyi çek
-            db.ref('arabalar/' + key).once('value').then((snapshot) => {
-                if(snapshot.exists()) {
-                    const veri = snapshot.val();
-                    // 'arsiv' klasörüne kopyala
-                    db.ref('arsiv/' + key).set(veri).then(() => {
-                        // Sonra ana listeden sil
-                        db.ref('arabalar/' + key).remove().then(() => {
-                            alert("İlan başarıyla arşive kaldırıldı!");
-                        });
-                    });
-                }
+        if(confirm("Bu ilanı veritabanından silmek istediğine emin misin?")) {
+            db.ref('arabalar/' + key).remove().then(() => {
+                alert("İlan başarıyla silindi!");
             });
         }
     }
