@@ -62,19 +62,15 @@
     }
 
     function ilanlariYukle() {
-        console.log("Firebase'e bağlanılıyor...");
-        
-        db.ref('ilanlar').on('value', (snapshot) => {
-            const liste = document.getElementById('adminListe');
-            console.log("Veri geldi mi?", snapshot.exists());
-            
-            liste.innerHTML = "";
-            let sayac = 0;
-
-            if(!snapshot.exists()) {
-                liste.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:#555;">Pazarda hiç ilan yok...</td></tr>`;
-                document.getElementById('istatistik').innerText = "Sistemdeki Toplam İlan: 0";
-                return;
+    db.ref().on('value', (snapshot) => {
+        console.log("TÜM VERİTABANI:", snapshot.val()); // Veritabanında ne varsa konsola döker
+        if(snapshot.exists()){
+            console.log("İlanlar klasörü içeriği:", snapshot.child('ilanlar').val());
+        } else {
+            console.log("Veritabanı tamamen boş!");
+        }
+    });
+}
             }
 
             snapshot.forEach((childSnapshot) => {
@@ -119,3 +115,4 @@
 </script>
 </body>
 </html>
+
