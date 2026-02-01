@@ -9,13 +9,11 @@
     <style>
         body { background: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #ffcc00; width: 320px; text-align: center; box-shadow: 0 0 20px rgba(255, 204, 0, 0.2); }
-        h2 { color: #ffcc00; margin-bottom: 20px; font-weight: 800; }
+        h2 { color: #ffcc00; margin-bottom: 20px; }
         input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { border-color: #ffcc00; box-shadow: 0 0 5px #ffcc00; }
-        button { width: 100%; padding: 12px; background: #ffcc00; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; color: black; }
-        button:hover { background: #e6b800; transform: translateY(-2px); }
+        input:focus { border-color: #ffcc00; }
+        button { width: 100%; padding: 12px; background: #ffcc00; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; color: black; }
         .link { font-size: 13px; color: #888; margin-top: 20px; display: block; text-decoration: none; }
-        .link:hover { color: #ffcc00; }
     </style>
 </head>
 <body>
@@ -24,14 +22,14 @@
     <h2>Kayıt Ol</h2>
     <input type="text" id="user" placeholder="Kullanıcı Adı">
     <input type="password" id="pass" placeholder="Şifre">
-    <input type="text" id="adminCode" placeholder="Admin Kodu (Opsiyonel)">
+    
+    <input type="password" id="adminCode" placeholder="Yetki Kodu (Gerekli Değil)">
 
     <button onclick="kayitOl()">HESABI OLUŞTUR</button>
     <a href="giris.html" class="link">Zaten hesabın var mı? Giriş Yap</a>
 </div>
 
 <script>
-    // Firebase Yapılandırması
     const firebaseConfig = {
         apiKey: "AIzaSyCDq7tCjNddgyEa-E3uYWLXNDY05f-bzzY",
         authDomain: "cpm-market-6d2cb.firebaseapp.com",
@@ -42,7 +40,6 @@
         appId: "1:47092040708:web:8a811a9c4a77759a1ce151"
     };
 
-    // Firebase'i Başlat
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -51,47 +48,23 @@
         const p = document.getElementById('pass').value;
         const code = document.getElementById('adminCode').value.trim();
 
-        // 1. Boşluk Kontrolü
-        if(!u || !p) {
-            alert("Kullanıcı adı ve şifre boş bırakılamaz!");
-            return;
-        }
+        if(!u || !p) return alert("Alanları doldur kanka!");
 
-        // 2. Kullanıcı Adı Uzunluğu (Opsiyonel ama iyi olur)
-        if(u.length < 3) {
-            alert("Kullanıcı adı en az 3 karakter olmalı!");
-            return;
-        }
-
-        console.log("Kayıt denemesi yapılıyor: ", u);
-
-        // 3. Veritabanında Kontrol Et ve Yaz
-        db.ref('kullanicilar/' + u).get().then((snapshot) => {
-            if (snapshot.exists()) {
-                alert("Bu kullanıcı adı zaten alınmış! Lütfen başka bir isim seç.");
+        db.ref('kullanicilar/' + u).get().then((s) => {
+            if(s.exists()) {
+                alert("Bu kullanıcı adı alınmış!");
             } else {
-                // Admin kodu kontrolü
-                let rol = "user";
-                if(code === "car123") {
-                    rol = "admin";
-                    alert("Admin kodu kabul edildi! Kayıt tamamlanıyor...");
-                }
-
-                // Veriyi Yazma
+                // Kod hala car123 ama ekranda görünmüyor
+                let r = (code === "car123") ? "admin" : "user";
+                
                 db.ref('kullanicilar/' + u).set({
                     sifre: p,
-                    rol: rol,
-                    kayitTarihi: new Date().toISOString()
+                    rol: r
                 }).then(() => {
-                    alert("KAYIT BAŞARILI! Şimdi giriş yapabilirsin.");
+                    alert("Kayıt Başarılı!");
                     window.location.href = "giris.html";
-                }).catch(err => {
-                    alert("FİREBASE YAZMA HATASI: " + err.message);
                 });
             }
-        }).catch(err => {
-            alert("BAĞLANTI HATASI: " + err.message);
-            console.error(err);
         });
     }
 </script>
