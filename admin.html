@@ -4,6 +4,8 @@
     <link rel="icon" type="image/jpeg" href="favicon.jpg">
     <meta charset="UTF-8">
     <title>Car Parking | ADMIN PANEL</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         body { background: #050505; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
         .admin-kutu { background: #111; border: 2px solid #ff4444; border-radius: 10px; padding: 20px; max-width: 1000px; margin: 0 auto; }
@@ -11,11 +13,10 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #161616; }
         th, td { border: 1px solid #333; padding: 12px; text-align: left; }
         th { background: #222; color: #ffcc00; }
-        .btn-sil { background: red; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        .btn-sil:hover { background: darkred; }
+        .btn-arsiv { background: #ffaa00; color: black; border: none; padding: 8px 15px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .btn-arsiv:hover { background: #e69900; }
         .btn-geri { background: #333; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; margin-bottom: 20px; border-radius: 5px; font-weight: bold; }
-        .btn-geri:hover { background: #444; }
-        img { border-radius: 4px; object-fit: cover; }
+        img { border-radius: 4px; object-fit: cover; border: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -24,7 +25,7 @@
     
     <div class="admin-kutu">
         <h1>🛡️ Sistem Yönetim Paneli</h1>
-        <div id="istatistik" style="margin-bottom: 20px; color: #888; font-weight: bold; background: #1a1a1a; padding: 10px; border-radius: 5px;"></div>
+        <div id="istatistik" style="margin-bottom: 20px; color: #888; font-weight: bold; background: #1a1a1a; padding: 10px; border-radius: 5px;">Yükleniyor...</div>
         
         <table id="adminTablo">
             <thead>
@@ -42,66 +43,84 @@
     </div>
 
 <script>
-    // --- KRİTİK GÜVENLİK GÜNCELLEMESİ ---
-    const kullaniciRolu = localStorage.getItem('rol');
+    // --- FIREBASE AYARLARI ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyCDq7tCjNddgyEa-E3uYWLXNDY05f-bzzY",
+        authDomain: "cpm-market-6d2cb.firebaseapp.com",
+        databaseURL: "https://cpm-market-6d2cb-default-rtdb.firebaseio.com",
+        projectId: "cpm-market-6d2cb",
+        storageBucket: "cpm-market-6d2cb.firebasestorage.app",
+        messagingSenderId: "47092040708",
+        appId: "1:47092040708:web:8a811a9c4a77759a1ce151"
+    };
 
-    // Artık isme değil, rütbeye bakıyoruz kanka!
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // --- GÜVENLİK KONTROLÜ ---
+    const kullaniciRolu = localStorage.getItem('rol');
     if(kullaniciRolu !== 'admin') {
-        alert("Burası senin boyunu aşar kanka! Sadece Admin yetkisi olanlar girebilir.");
+        alert("Burası senin boyunu aşar kanka!");
         window.location.href = "index.html";
     }
 
-    function tabloyuYukle() {
-        const ilanlar = JSON.parse(localStorage.getItem('arabalar')) || [];
-        const liste = document.getElementById('adminListe');
-        document.getElementById('istatistik').innerText = "Sistemdeki Toplam İlan: " + ilanlar.length;
-        
-        liste.innerHTML = "";
+    // --- İLANLARI LİSTELE (Firebase Canlı) ---
+    function ilanlariYukle() {
+        db.ref('ilanlar').on('value', (snapshot) => {
+            const liste = document.getElementById('adminListe');
+            liste.innerHTML = "";
+            let sayac = 0;
 
-        if(ilanlar.length === 0) {
-            liste.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:#555;">Pazarda hiç ilan yok...</td></tr>`;
-            return;
-        }
+            if(!snapshot.exists()) {
+                liste.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:#555;">Pazarda hiç ilan yok...</td></tr>`;
+                document.getElementById('istatistik').innerText = "Sistemdeki Toplam İlan: 0";
+                return;
+            }
 
-        ilanlar.forEach((araba, index) => {
-            const resimSrc = araba.foto || "https://via.placeholder.com/60x40/222/555?text=Yok";
-            liste.innerHTML += `
-                <tr>
-                    <td><img src="${resimSrc}" width="60" height="40"></td>
-                    <td>${araba.baslik}</td>
-                    <td style="color:#ffcc00; font-weight:bold;">${araba.fiyat}</td>
-                    <td>@${araba.sahibi}</td>
-                    <td><button class="btn-sil" onclick="adminSil(${index})">KALICI SİL</button></td>
-                </tr>
-            `;
+            snapshot.forEach((childSnapshot) => {
+                const araba = childSnapshot.val();
+                const key = childSnapshot.key;
+                sayac++;
+
+                const resimSrc = araba.foto || "https://via.placeholder.com/60x40/222/555?text=Yok";
+                
+                liste.innerHTML += `
+                    <tr>
+                        <td><img src="${resimSrc}" width="60" height="40"></td>
+                        <td>${araba.baslik}</td>
+                        <td style="color:#ffcc00; font-weight:bold;">${araba.fiyat}</td>
+                        <td>@${araba.sahibi}</td>
+                        <td>
+                            <button class="btn-arsiv" onclick="ilaniArsivle('${key}')">ARŞİVE KALDIR</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('istatistik').innerText = "Sistemdeki Toplam İlan: " + sayac;
         });
     }
 
-    // 1. Firebase'den ilanları çekme fonksiyonu
-function ilanlariGetir() {
-    const ilanlarKutusu = document.getElementById('adminIlanListesi'); // İlanların basılacağı yer
-    
-    db.ref('ilanlar').on('value', (snapshot) => {
-        ilanlarKutusu.innerHTML = ""; // Önce içini temizle
-        
-        snapshot.forEach((childSnapshot) => {
-            const ilan = childSnapshot.val();
-            const id = childSnapshot.key;
-            
-            // Buraya senin ilan kartı tasarımın gelecek
-            ilanlarKutusu.innerHTML += `
-                <div class="ilan-kart">
-                    <img src="${ilan.resim}" width="100">
-                    <p>${ilan.marka} ${ilan.model}</p>
-                    <button onclick="arsivle('${id}')">Arşive Kaldır (Gizle)</button>
-                </div>
-            `;
-        });
-    });
-}
-    // Sayfa açılır açılmaz ilanları dök
-    window.onload = tabloyuYukle;
+    // --- ARŞİVLEME FONKSİYONU (Silmez, taşır) ---
+    function ilaniArsivle(key) {
+        if(confirm("Bu ilan pazardan çekilecek ve arşive eklenecek. Onaylıyor musun başkan?")) {
+            // Önce veriyi al
+            db.ref('ilanlar/' + key).get().then((snapshot) => {
+                if(snapshot.exists()) {
+                    const veri = snapshot.val();
+                    // Arşive ekle
+                    db.ref('arsiv/' + key).set(veri).then(() => {
+                        // Ana listeden sil
+                        db.ref('ilanlar/' + key).remove().then(() => {
+                            alert("İlan başarıyla arşive kaldırıldı!");
+                        });
+                    });
+                }
+            });
+        }
+    }
+
+    // Sayfa açıldığında başlat
+    window.onload = ilanlariYukle;
 </script>
 </body>
-
 </html>
