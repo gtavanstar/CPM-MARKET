@@ -82,7 +82,6 @@
         const arama = document.getElementById('searchBox').value.toLowerCase();
         const liste = document.getElementById('anaListe');
         
-        // .on('value') yerine veriyi bir kez çekip sonra dinlemek daha stabil
         database.ref('arabalar').on('value', (snapshot) => {
             liste.innerHTML = "";
             snapshot.forEach((childSnapshot) => {
@@ -142,13 +141,21 @@
         });
     }
 
+    // --- YENİ ONLINE RAPORLAMA ---
     function ilanRaporla(baslik, sahibi, id) {
-        const sebep = prompt("Neden raporluyorsunuz? (+18, Dolandırıcılık vb.)");
+        const sebep = prompt("Neden raporluyorsunuz? (Örn: Hatalı ID, Dolandırıcılık)");
         if(!sebep) return;
-        const email = "coredeathplay@outlook.com.tr";
-        const konu = "CPM RAPOR: " + baslik;
-        const body = `İlan: ${baslik}%0ASahibi: @${sahibi}%0AID: ${id}%0ASebep: ${sebep}`;
-        window.location.href = `mailto:${email}?subject=${konu}&body=${body}`;
+
+        database.ref('raporlar').push({
+            ilan: baslik,
+            sahibi: sahibi,
+            id: id,
+            sikayetEden: girisYapan,
+            neden: sebep,
+            tarih: new Date().toLocaleString()
+        }).then(() => {
+            alert("Raporun merkeze iletildi kanka! Admin bakacak.");
+        });
     }
 
     function ilanSil(id) { if(confirm("Silinsin mi?")) database.ref('arabalar/' + id).remove(); }
