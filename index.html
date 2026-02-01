@@ -91,6 +91,15 @@
                 if (arama && !araba.baslik.toLowerCase().includes(arama)) return;
 
                 const resim = araba.foto || "https://via.placeholder.com/300x180/222/555?text=FOTO+YOK";
+                
+                // --- CHAT MESAJLARINI HAZIRLA ---
+                let mesajlarHtml = "";
+                if(araba.mesajlar) {
+                    Object.values(araba.mesajlar).forEach(m => {
+                        mesajlarHtml += `<div style="font-size:11px; margin-bottom:2px;"><b style="color:#ffcc00;">${m.gonderen}:</b> ${m.metin}</div>`;
+                    });
+                }
+
                 const silButon = (kullaniciRolu === "admin" || araba.sahibi === girisYapan) 
                     ? `<button class="btn-sil" onclick="ilanSil('${fbId}')">SİL</button>` : '';
 
@@ -106,8 +115,30 @@
                             <button class="btn-rapor" onclick="ilanRaporla('${araba.baslik}', '${araba.sahibi}', '${araba.km}')">🚫 RAPORLA</button>
                             ${silButon}
                         </div>
+                        <div style="background:#1a1a1a; padding:10px; border-top:1px solid #222; max-height:80px; overflow-y:auto;">
+                            ${mesajlarHtml || '<span style="color:#444; font-size:11px;">Henüz teklif yok...</span>'}
+                        </div>
+                        <div style="display:flex; padding:5px; background:#111; border-top:1px solid #222;">
+                            <input type="text" id="input-${fbId}" placeholder="Pazarlık yap..." style="flex:1; background:#222; border:1px solid #333; color:white; padding:5px; font-size:12px; border-radius:4px;">
+                            <button onclick="mesajGonder('${fbId}')" style="background:#ffcc00; border:none; padding:5px 10px; margin-left:5px; cursor:pointer; border-radius:4px; font-weight:bold;">></button>
+                        </div>
                     </div>`;
             });
+        });
+    }
+
+    // --- MESAJ GÖNDERME FONKSİYONU ---
+    function mesajGonder(id) {
+        const msgInput = document.getElementById('input-' + id);
+        const mesaj = msgInput.value;
+        if(!mesaj) return;
+
+        database.ref('arabalar/' + id + '/mesajlar').push({
+            gonderen: girisYapan,
+            metin: mesaj,
+            tarih: Date.now()
+        }).then(() => {
+            msgInput.value = ""; // Kutuyu temizle
         });
     }
 
@@ -118,3 +149,4 @@
 </script>
 </body>
 </html>
+
