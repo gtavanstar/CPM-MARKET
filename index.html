@@ -17,16 +17,17 @@
         .btn-tab { background: #222; color: #888; border: none; padding: 10px 15px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 13px; }
         .btn-tab.active { background: #ffcc00; color: #000; }
         .ilan-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding: 20px 5%; }
-        .kart { background: #161616; border: 1px solid #222; border-radius: 15px; overflow: hidden; position: relative; transition: 0.3s; }
+        .kart { background: #161616; border: 1px solid #222; border-radius: 15px; overflow: hidden; position: relative; transition: 0.3s; display: flex; flex-direction: column; }
         .kart:hover { border-color: #ffcc00; }
         .badge { position: absolute; top: 10px; right: 10px; padding: 5px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; z-index: 10; background: #ffcc00; color: #000; }
         .araba-img { width: 100%; height: 180px; object-fit: cover; }
-        .kart-body { padding: 15px; }
+        .kart-body { padding: 15px; flex-grow: 1; }
         .fiyat { color: #ffcc00; font-size: 22px; font-weight: 800; }
         .id-box { background: #222; padding: 6px; border-radius: 6px; font-size: 11px; color: #ffcc00; cursor: pointer; display: block; margin-top: 8px; border: 1px dashed #444; text-align: center; }
         .btn-rapor { background: #ff444422; color: #ff4444; border: 1px solid #ff4444; padding: 6px; border-radius: 6px; font-size: 11px; cursor: pointer; width: 100%; margin-top: 5px; font-weight: bold; }
         .btn-sil { background: #ff444422; color: #ff4444; border: 1px solid #ff4444; padding: 8px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; }
         .btn-admin { background: #ff4444; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; font-size: 12px; display: none; }
+        .chat-container { background: #1a1a1a; padding: 10px; border-top: 1px solid #222; max-height: 100px; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -81,6 +82,7 @@
         const arama = document.getElementById('searchBox').value.toLowerCase();
         const liste = document.getElementById('anaListe');
         
+        // .on('value') yerine veriyi bir kez çekip sonra dinlemek daha stabil
         database.ref('arabalar').on('value', (snapshot) => {
             liste.innerHTML = "";
             snapshot.forEach((childSnapshot) => {
@@ -92,7 +94,6 @@
 
                 const resim = araba.foto || "https://via.placeholder.com/300x180/222/555?text=FOTO+YOK";
                 
-                // --- CHAT MESAJLARINI HAZIRLA ---
                 let mesajlarHtml = "";
                 if(araba.mesajlar) {
                     Object.values(araba.mesajlar).forEach(m => {
@@ -115,7 +116,7 @@
                             <button class="btn-rapor" onclick="ilanRaporla('${araba.baslik}', '${araba.sahibi}', '${araba.km}')">🚫 RAPORLA</button>
                             ${silButon}
                         </div>
-                        <div style="background:#1a1a1a; padding:10px; border-top:1px solid #222; max-height:80px; overflow-y:auto;">
+                        <div class="chat-container">
                             ${mesajlarHtml || '<span style="color:#444; font-size:11px;">Henüz teklif yok...</span>'}
                         </div>
                         <div style="display:flex; padding:5px; background:#111; border-top:1px solid #222;">
@@ -127,7 +128,6 @@
         });
     }
 
-    // --- MESAJ GÖNDERME FONKSİYONU ---
     function mesajGonder(id) {
         const msgInput = document.getElementById('input-' + id);
         const mesaj = msgInput.value;
@@ -138,15 +138,24 @@
             metin: mesaj,
             tarih: Date.now()
         }).then(() => {
-            msgInput.value = ""; // Kutuyu temizle
+            msgInput.value = ""; 
         });
+    }
+
+    function ilanRaporla(baslik, sahibi, id) {
+        const sebep = prompt("Neden raporluyorsunuz? (+18, Dolandırıcılık vb.)");
+        if(!sebep) return;
+        const email = "coredeathplay@outlook.com.tr";
+        const konu = "CPM RAPOR: " + baslik;
+        const body = `İlan: ${baslik}%0ASahibi: @${sahibi}%0AID: ${id}%0ASebep: ${sebep}`;
+        window.location.href = `mailto:${email}?subject=${konu}&body=${body}`;
     }
 
     function ilanSil(id) { if(confirm("Silinsin mi?")) database.ref('arabalar/' + id).remove(); }
     function idKopyala(id) { navigator.clipboard.writeText(id); alert("ID Kopyalandı!"); }
     function cikisYap() { localStorage.clear(); window.location.href="giris.html"; }
+    
     window.onload = ilanlariGetir;
 </script>
 </body>
 </html>
-
