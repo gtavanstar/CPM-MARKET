@@ -7,28 +7,30 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #ffcc00; width: 320px; text-align: center; box-shadow: 0 0 20px rgba(255, 204, 0, 0.2); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
+        body { background: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #ffcc00; width: 320px; text-align: center; box-shadow: 0 0 20px rgba(255, 204, 0, 0.2); }
+        h2 { color: #ffcc00; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; outline: none; }
         input:focus { border-color: #ffcc00; }
         button { width: 100%; padding: 12px; background: #ffcc00; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        button:hover { background: #e6b800; transform: scale(1.02); }
-        .switch { font-size: 13px; color: #888; margin-top: 20px; cursor: pointer; display: block; text-decoration: none; }
+        button:hover { background: #e6b800; }
+        .link { font-size: 13px; color: #888; margin-top: 20px; display: block; text-decoration: none; }
     </style>
 </head>
 <body>
 
-<div class="login-box">
-    <h2 style="color:#ffcc00; margin-bottom: 20px;">Kayıt Ol</h2>
+<div class="box">
+    <h2>Kayıt Ol</h2>
     <input type="text" id="user" placeholder="Kullanıcı Adı">
     <input type="password" id="pass" placeholder="Şifre">
-    <input type="text" id="adminCode" placeholder="Admin Kayıt Kodu (Opsiyonel)">
+    <input type="text" id="adminCode" placeholder="Admin Kodu (car123)">
 
-    <button onclick="kayitOl()">HESAP OLUŞTUR</button>
-    <a href="giris.html" class="switch">Zaten hesabın var mı? Giriş Yap</a>
+    <button onclick="kayitOl()">HESABI OLUŞTUR</button>
+    <a href="giris.html" class="link">Zaten hesabın var mı? Giriş Yap</a>
 </div>
 
 <script>
+    // Firebase Ayarları
     const firebaseConfig = {
         apiKey: "AIzaSyCDq7tCjNddgyEa-E3uYWLXNDY05f-bzzY",
         authDomain: "cpm-market-6d2cb.firebaseapp.com",
@@ -40,32 +42,31 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    const db = firebase.database();
 
     function kayitOl() {
         const u = document.getElementById('user').value.trim().toLowerCase();
         const p = document.getElementById('pass').value;
-        const aCode = document.getElementById('adminCode').value;
+        const code = document.getElementById('adminCode').value;
 
-        if(!u || !p) return alert("Kullanıcı adı ve şifre zorunlu!");
+        if(!u || !p) return alert("Alanları doldur kanka!");
 
-        database.ref('kullanicilar/' + u).get().then((snap) => {
-            if(snap.exists()) {
-                alert("Bu kullanıcı adı zaten alınmış!");
+        // Önce bu isimde biri var mı kontrol et
+        db.ref('kullanicilar/' + u).get().then((s) => {
+            if(s.exists()) {
+                alert("Bu kullanıcı adı kapılmış kanka, başka dene.");
             } else {
-                let rol = "user";
-                // YENİ ADMIN KODUN BURADA: car123
-                if(aCode === "car123") { 
-                    rol = "admin";
-                    alert("Admin yetkisi tanımlandı! Hoş geldin başkan.");
-                }
-
-                database.ref('kullanicilar/' + u).set({
+                // Admin kodu car123 ise rol admin olur
+                let r = (code === "car123") ? "admin" : "user";
+                
+                db.ref('kullanicilar/' + u).set({
                     sifre: p,
-                    rol: rol
+                    rol: r
                 }).then(() => {
                     alert("Kayıt Başarılı! Şimdi giriş yapabilirsin.");
                     window.location.href = "giris.html";
+                }).catch(err => {
+                    alert("Hata: " + err.message + "\n(Firebase Rules ayarını kontrol et!)");
                 });
             }
         });
@@ -73,6 +74,3 @@
 </script>
 </body>
 </html>
-
-
-
