@@ -7,72 +7,58 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; padding: 20px; }
-        .form-container { max-width: 500px; margin: auto; background: #111; padding: 20px; border-radius: 10px; border: 1px solid #ffcc00; }
-        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #333; background: #222; color: white; }
-        button { background: #ffcc00; color: black; font-weight: bold; cursor: pointer; border: none; }
-        .back-btn { background: none; color: #888; border: none; text-decoration: underline; cursor: pointer; }
+        body { background: #0a0a0a; color: white; font-family: sans-serif; padding: 20px; display: flex; justify-content: center; }
+        .form-container { width: 100%; max-width: 400px; background: #111; padding: 25px; border-radius: 15px; border: 1px solid #ffcc00; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; outline: none; }
+        button { background: #ffcc00; color: #000; font-weight: bold; border: none; cursor: pointer; margin-top: 15px; }
+        .back { color: #888; text-align: center; display: block; text-decoration: none; font-size: 13px; margin-top: 10px; }
     </style>
 </head>
 <body>
-
 <div class="form-container">
-    <h2>Yeni İlan Ver (Online)</h2>
-    <input type="text" id="baslik" placeholder="İlan Başlığı (Örn: Full Tasarım Supra)">
-    <input type="text" id="fiyat" placeholder="Fiyat (Örn: 50.000.000)">
-    <input type="text" id="km" placeholder="Araba ID (Oyun İçi ID)">
-    <input type="text" id="foto" placeholder="Fotoğraf Linki (Opsiyonel)">
+    <h2 style="color:#ffcc00; margin-bottom:15px;">Yeni İlan Ver</h2>
+    <input type="text" id="baslik" placeholder="İlan Başlığı">
+    <input type="text" id="fiyat" placeholder="Fiyat (Örn: 10M)">
+    <input type="text" id="km" placeholder="Oyun İçi ID'niz">
+    <input type="text" id="foto" placeholder="Fotoğraf Linki (Hızlıresim vb.)">
     <select id="etiket">
-        <option value="">Etiket Seç (Opsiyonel)</option>
-        <option value="🔥 Hız">🔥 Hız Canavarı</option>
-        <option value="🔄 Takaslık">🔄 Takaslık</option>
-        <option value="💎 Koleksiyonluk">💎 Koleksiyonluk</option>
-        <option value="⚠ Acil">⚠ Acil Satılık</option>
-        <option value="🎨 Efsane">🎨 Efsane Tasarım</option>
+        <option value="">Etiket Seçin</option>
+        <option value="🔥 Hız">Hız Canavarı</option>
+        <option value="🔄 Takaslık">Takaslık</option>
+        <option value="💎 Koleksiyon">Koleksiyonluk</option>
     </select>
-    <button onclick="ilanYayinla()">DÜNYAYA DUYUR (YAYINLA)</button>
-    <button class="back-btn" onclick="location.href='index.html'">Vazgeç, Geri Dön</button>
+    <button onclick="yayinla()">YAYINLA</button>
+    <a href="index.html" class="back">Geri Dön</a>
 </div>
 
 <script>
-    // --- FIREBASE AYARLARI (Senin Kodların) ---
     const firebaseConfig = {
-      apiKey: "AIzaSyCDq7tCjNddgyEa-E3uYWLXNDY05f-bzzY",
-      authDomain: "cpm-market-6d2cb.firebaseapp.com",
-      databaseURL: "https://cpm-market-6d2cb-default-rtdb.firebaseio.com",
-      projectId: "cpm-market-6d2cb",
-      storageBucket: "cpm-market-6d2cb.firebasestorage.app",
-      messagingSenderId: "47092040708",
-      appId: "1:47092040708:web:b2969fe14800f1631ce151"
+        apiKey: "AIzaSyCDq7tCjNddgyEa-E3uYWLXNDY05f-bzzY",
+        authDomain: "cpm-market-6d2cb.firebaseapp.com",
+        databaseURL: "https://cpm-market-6d2cb-default-rtdb.firebaseio.com",
+        projectId: "cpm-market-6d2cb",
+        storageBucket: "cpm-market-6d2cb.firebasestorage.app",
+        messagingSenderId: "47092040708",
+        appId: "1:47092040708:web:8a811a9c4a77759a1ce151"
     };
-
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const girisYapan = localStorage.getItem('oturum');
 
-    function ilanYayinla() {
-        const baslik = document.getElementById('baslik').value;
-        const fiyat = document.getElementById('fiyat').value;
-        const km = document.getElementById('km').value;
-        const foto = document.getElementById('foto').value;
-        const etiket = document.getElementById('etiket').value;
+    function yayinla() {
+        const b = document.getElementById('baslik').value;
+        const f = document.getElementById('fiyat').value;
+        const k = document.getElementById('km').value;
+        const fo = document.getElementById('foto').value;
+        const e = document.getElementById('etiket').value;
 
-        if(!baslik || !fiyat || !km) return alert("Lütfen gerekli alanları doldur!");
+        if(!b || !f || !k) return alert("Eksikleri doldur kanka!");
 
-        // Firebase'e Gönder
         database.ref('arabalar').push({
-            baslik: baslik,
-            fiyat: fiyat,
-            km: km,
-            foto: foto,
-            etiket: etiket,
-            sahibi: girisYapan,
-            tarih: Date.now()
+            baslik: b, fiyat: f, km: k, foto: fo, etiket: e, sahibi: girisYapan
         }).then(() => {
-            alert("İlanın Online Oldu! Herkes görebilir.");
+            alert("İlan Yayında!");
             window.location.href = "index.html";
-        }).catch((hata) => {
-            alert("Hata oluştu: " + hata.message);
         });
     }
 </script>
