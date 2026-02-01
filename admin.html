@@ -77,17 +77,31 @@
         });
     }
 
-    function adminSil(index) {
-        if(confirm("DİKKAT: Admin yetkisiyle bu ilanı siliyorsun. Emin misin?")) {
-            let ilanlar = JSON.parse(localStorage.getItem('arabalar')) || [];
-            ilanlar.splice(index, 1);
-            localStorage.setItem('arabalar', JSON.stringify(ilanlar));
-            tabloyuYukle(); // Tabloyu tazele
-        }
-    }
-
+    // 1. Firebase'den ilanları çekme fonksiyonu
+function ilanlariGetir() {
+    const ilanlarKutusu = document.getElementById('adminIlanListesi'); // İlanların basılacağı yer
+    
+    db.ref('ilanlar').on('value', (snapshot) => {
+        ilanlarKutusu.innerHTML = ""; // Önce içini temizle
+        
+        snapshot.forEach((childSnapshot) => {
+            const ilan = childSnapshot.val();
+            const id = childSnapshot.key;
+            
+            // Buraya senin ilan kartı tasarımın gelecek
+            ilanlarKutusu.innerHTML += `
+                <div class="ilan-kart">
+                    <img src="${ilan.resim}" width="100">
+                    <p>${ilan.marka} ${ilan.model}</p>
+                    <button onclick="arsivle('${id}')">Arşive Kaldır (Gizle)</button>
+                </div>
+            `;
+        });
+    });
+}
     // Sayfa açılır açılmaz ilanları dök
     window.onload = tabloyuYukle;
 </script>
 </body>
+
 </html>
