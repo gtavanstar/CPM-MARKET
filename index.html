@@ -47,7 +47,6 @@
         .id-box { background: #222; padding: 6px; border-radius: 6px; font-size: 11px; color: #ffcc00; cursor: pointer; display: inline-block; margin-top: 8px; border: 1px dashed #444; width: 100%; text-align: center; font-weight: bold; }
         .id-box:hover { background: #333; border-color: #ffcc00; }
 
-        /* RAPOR BUTONU STİLİ */
         .btn-rapor { background: #ff444422; color: #ff4444; border: 1px solid #ff4444; padding: 6px; border-radius: 6px; font-size: 11px; cursor: pointer; display: inline-block; margin-top: 5px; width: 100%; text-align: center; font-weight: bold; transition: 0.3s; }
         .btn-rapor:hover { background: #ff4444; color: #fff; }
 
@@ -84,7 +83,6 @@
 </div>
 
 <script>
-    // 🛡️ GÜVENLİK
     document.addEventListener('contextmenu', e => { e.preventDefault(); alert("Kodlar Apache 2.0 lisanslı GitHub'da var!"); });
     document.onkeydown = function(e) {
         if(e.keyCode == 123 || (e.ctrlKey && (e.keyCode == 'S'.charCodeAt(0) || e.keyCode == 'U'.charCodeAt(0)))) {
@@ -166,17 +164,17 @@
         });
     }
 
-    // 🚩 RAPORLAMA FONKSİYONU
     function ilanRaporla(baslik, sahibi, id) {
         const sebep = prompt("Neden raporluyorsunuz? (+18, Dolandırıcılık, Küfür vb.)");
         if(!sebep) return;
 
         const email = "coredeathplay@outlook.com.tr";
         const konu = "CPM MARKET RAPOR: " + baslik;
-        const mesaj = `Raporlayan: ${girisYapan}%0D%0Aİlan Sahibi: ${sahibi}%0D%0Aİlan ID: ${id}%0D%0ASebep: ${sebep}`;
+        // Burada id parametresi artık düzgün geliyor
+        const mesaj = `RAPOR DETAYLARI:%0D%0A----------------------%0D%0Aİlan Adı: ${baslik}%0D%0Aİlan Sahibi: @${sahibi}%0D%0Aİlan ID: ${id}%0D%0ARaporlayan: @${girisYapan}%0D%0ASebep: ${sebep}`;
         
         window.location.href = `mailto:${email}?subject=${konu}&body=${mesaj}`;
-        alert("Rapor taslağı oluşturuldu. Lütfen maili gönder butonuna basın.");
+        alert("Rapor taslağı oluşturuldu. Lütfen maili gönderin!");
     }
 
     function idKopyala(id) {
