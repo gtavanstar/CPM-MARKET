@@ -45,32 +45,26 @@
     const db = firebase.database();
 
     function kayitOl() {
-        const u = document.getElementById('user').value.trim().toLowerCase();
-        const p = document.getElementById('pass').value;
-        const code = document.getElementById('adminCode').value;
+    const u = document.getElementById('user').value.trim().toLowerCase();
+    const p = document.getElementById('pass').value;
+    const code = document.getElementById('adminCode').value;
 
-        if(!u || !p) return alert("Alanları doldur kanka!");
+    if(!u || !p) return alert("Kullanıcı adı ve şifre boş!");
 
-        // Önce bu isimde biri var mı kontrol et
-        db.ref('kullanicilar/' + u).get().then((s) => {
-            if(s.exists()) {
-                alert("Bu kullanıcı adı kapılmış kanka, başka dene.");
-            } else {
-                // Admin kodu car123 ise rol admin olur
-                let r = (code === "car123") ? "admin" : "user";
-                
-                db.ref('kullanicilar/' + u).set({
-                    sifre: p,
-                    rol: r
-                }).then(() => {
-                    alert("Kayıt Başarılı! Şimdi giriş yapabilirsin.");
-                    window.location.href = "giris.html";
-                }).catch(err => {
-                    alert("Hata: " + err.message + "\n(Firebase Rules ayarını kontrol et!)");
-                });
-            }
-        });
-    }
+    console.log("Kayıt denemesi başlıyor..."); // Konsola yazar
+
+    db.ref('kullanicilar/' + u).set({
+        sifre: p,
+        rol: (code === "car123") ? "admin" : "user"
+    }).then(() => {
+        alert("KAYIT BAŞARILI! Girişe gidiyorsun.");
+        window.location.href = "giris.html";
+    }).catch(err => {
+        alert("FİREBASE HATASI: " + err.message); // Hata varsa burası patlar
+        console.error(err);
+    });
+}
 </script>
 </body>
 </html>
+
