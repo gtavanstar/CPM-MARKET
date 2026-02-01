@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <link rel="icon" type="image/jpeg" href="favicon.jpg">
+    <meta charset="UTF-8">
+    <title>Car Parking | ADMIN PANEL</title>
+    <style>
+        body { background: #050505; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .admin-kutu { background: #111; border: 2px solid #ff4444; border-radius: 10px; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        h1 { color: #ff4444; text-align: center; text-transform: uppercase; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #161616; }
+        th, td { border: 1px solid #333; padding: 12px; text-align: left; }
+        th { background: #222; color: #ffcc00; }
+        .btn-sil { background: red; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .btn-sil:hover { background: darkred; }
+        .btn-geri { background: #333; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; margin-bottom: 20px; border-radius: 5px; font-weight: bold; }
+        .btn-geri:hover { background: #444; }
+        img { border-radius: 4px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="btn-geri">← Pazara Dön</a>
+    
+    <div class="admin-kutu">
+        <h1>🛡️ Sistem Yönetim Paneli</h1>
+        <div id="istatistik" style="margin-bottom: 20px; color: #888; font-weight: bold; background: #1a1a1a; padding: 10px; border-radius: 5px;"></div>
+        
+        <table id="adminTablo">
+            <thead>
+                <tr>
+                    <th>Görsel</th>
+                    <th>Araç Başlığı</th>
+                    <th>Fiyat</th>
+                    <th>Satıcı</th>
+                    <th>İşlem</th>
+                </tr>
+            </thead>
+            <tbody id="adminListe">
+                </tbody>
+        </table>
+    </div>
+
+<script>
+    // --- KRİTİK GÜVENLİK GÜNCELLEMESİ ---
+    const kullaniciRolu = localStorage.getItem('rol');
+
+    // Artık isme değil, rütbeye bakıyoruz kanka!
+    if(kullaniciRolu !== 'admin') {
+        alert("Burası senin boyunu aşar kanka! Sadece Admin yetkisi olanlar girebilir.");
+        window.location.href = "index.html";
+    }
+
+    function tabloyuYukle() {
+        const ilanlar = JSON.parse(localStorage.getItem('arabalar')) || [];
+        const liste = document.getElementById('adminListe');
+        document.getElementById('istatistik').innerText = "Sistemdeki Toplam İlan: " + ilanlar.length;
+        
+        liste.innerHTML = "";
+
+        if(ilanlar.length === 0) {
+            liste.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:#555;">Pazarda hiç ilan yok...</td></tr>`;
+            return;
+        }
+
+        ilanlar.forEach((araba, index) => {
+            const resimSrc = araba.foto || "https://via.placeholder.com/60x40/222/555?text=Yok";
+            liste.innerHTML += `
+                <tr>
+                    <td><img src="${resimSrc}" width="60" height="40"></td>
+                    <td>${araba.baslik}</td>
+                    <td style="color:#ffcc00; font-weight:bold;">${araba.fiyat}</td>
+                    <td>@${araba.sahibi}</td>
+                    <td><button class="btn-sil" onclick="adminSil(${index})">KALICI SİL</button></td>
+                </tr>
+            `;
+        });
+    }
+
+    function adminSil(index) {
+        if(confirm("DİKKAT: Admin yetkisiyle bu ilanı siliyorsun. Emin misin?")) {
+            let ilanlar = JSON.parse(localStorage.getItem('arabalar')) || [];
+            ilanlar.splice(index, 1);
+            localStorage.setItem('arabalar', JSON.stringify(ilanlar));
+            tabloyuYukle(); // Tabloyu tazele
+        }
+    }
+
+    // Sayfa açılır açılmaz ilanları dök
+    window.onload = tabloyuYukle;
+</script>
+</body>
+</html>

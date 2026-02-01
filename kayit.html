@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <link rel="icon" type="image/jpeg" href="favicon.jpg">
+    <meta charset="UTF-8">
+    <title>Kayıt Ol | Car Market</title>
+    <style>
+        body { background: #000; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .kutu { background: #111; padding: 40px; border-radius: 20px; border: 2px solid #ffcc00; width: 320px; text-align: center; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; background: #222; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: #ffcc00; }
+        .btn { width: 100%; padding: 15px; background: #ffcc00; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; }
+        .admin-not { color: #555; font-size: 11px; margin-top: 10px; font-style: italic; }
+        a { color: #888; text-decoration: none; font-size: 14px; display: block; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="kutu">
+        <h2 style="color:#ffcc00">HESAP AÇ</h2>
+        <input type="text" id="kullanici" placeholder="Kullanıcı Adı">
+        <input type="password" id="sifre" placeholder="Şifre">
+        
+        <input type="password" id="adminAnahtar" placeholder="Admin Anahtarı (Opsiyonel)">
+        <p class="admin-not">Sadece adminler anahtar girmelidir.</p>
+
+        <button class="btn" onclick="kayitOl()">KAYIT OL</button>
+        <a href="giris.html">Zaten hesabım var</a>
+    </div>
+
+    <script>
+        function kayitOl() {
+            const k = document.getElementById('kullanici').value.trim();
+            const s = document.getElementById('sifre').value;
+            const anahtar = document.getElementById('adminAnahtar').value;
+
+            // SENİN GİZLİ ADMIN ŞİFREN (Bunu kimseye söyleme kanka)
+            const GERCEK_ADMIN_ANAHTARI = "car123"; 
+
+            if(!k || !s) return alert("Alanları doldur kanka!");
+
+            // Kullanıcıyı objeye dönüştürelim ki rolünü de saklayalım
+            const kullanıcıVerisi = {
+                sifre: s,
+                rol: (anahtar === GERCEK_ADMIN_ANAHTARI) ? "admin" : "oyuncu"
+            };
+
+            if(localStorage.getItem('user_' + k)) {
+                return alert("Bu isim zaten alınmış!");
+            }
+            
+            localStorage.setItem('user_' + k, JSON.stringify(kullanıcıVerisi));
+            
+            if(kullanıcıVerisi.rol === "admin") {
+                alert("Tebrikler kanka, ADMIN olarak kayıt oldun!");
+            } else {
+                alert("Kaydın başarıyla yapıldı!");
+            }
+            
+            window.location.href = "giris.html";
+        }
+    </script>
+</body>
+</html>

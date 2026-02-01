@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <link rel="icon" type="image/jpeg" href="favicon.jpg">
+    <meta charset="UTF-8">
+    <title>Giriş Yap</title>
+    <style>
+        body { background: #000; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .kutu { background: #111; padding: 40px; border-radius: 20px; border: 2px solid #ffcc00; width: 320px; text-align: center; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; background: #222; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #ffcc00; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="kutu">
+        <h2 style="color:#ffcc00">GİRİŞ YAP</h2>
+        <input type="text" id="kullanici" placeholder="Kullanıcı Adı">
+        <input type="password" id="sifre" placeholder="Şifre">
+        <button class="btn" onclick="girisYap()">BAŞLAT</button>
+        <a href="kayit.html" style="color: #888; text-decoration: none; font-size: 14px; display: block; margin-top: 15px;">Henüz hesabın yok mu? Kayıt Ol</a>
+    </div>
+
+    <script>
+function girisYap() {
+    const k = document.getElementById('kullanici').value;
+    const s = document.getElementById('sifre').value;
+    const veriRaw = localStorage.getItem('user_' + k);
+
+    if(veriRaw) {
+        const veri = JSON.parse(veriRaw);
+        if(veri.sifre === s) {
+            localStorage.setItem('oturum', k); // Kullanıcı adını kaydet
+            localStorage.setItem('rol', veri.rol); // "admin" mi "oyuncu" mu olduğunu kaydet
+            window.location.href = "index.html";
+        } else {
+            alert("Şifre yanlış kanka!");
+        }
+    } else {
+        alert("Böyle bir kullanıcı yok!");
+    }
+}
+    </script>
+</body>
+</html>

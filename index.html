@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <link rel="icon" type="image/jpeg" href="favicon.jpg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Parking | Pazar</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: #0a0a0a; color: #fff; padding-bottom: 50px; }
+
+        header { 
+            background: #111; padding: 15px 5%; display: flex; 
+            justify-content: space-between; align-items: center; border-bottom: 2px solid #ffcc00;
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .logo { color: #ffcc00; font-size: 22px; font-weight: 900; }
+        
+        .search-container { background: #111; padding: 20px 5%; display: flex; gap: 10px; flex-wrap: wrap; }
+        #searchBox { flex: 1; min-width: 200px; padding: 12px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; outline: none; }
+        
+        .btn-tab { background: #222; color: #888; border: none; padding: 10px 15px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 13px; }
+        .btn-tab.active { background: #ffcc00; color: #000; }
+        .btn-fav-head { background: #ff444422; color: #ff4444; border: 1px solid #ff4444; }
+        .btn-fav-head.active { background: #ff4444; color: #fff; }
+
+        .container { padding: 0 5% 30px 5%; }
+        .ilan-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        
+        .kart { background: #161616; border: 1px solid #222; border-radius: 15px; overflow: hidden; position: relative; display: flex; flex-direction: column; transition: 0.3s; }
+        .kart:hover { border-color: #ffcc00; }
+        
+        .badge { position: absolute; top: 55px; right: 10px; padding: 5px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; text-transform: uppercase; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .badge-Hız { background: #ff4444; color: white; }
+        .badge-Takaslık { background: #4444ff; color: white; }
+        .badge-Koleksiyonluk { background: #aa44ff; color: white; }
+        .badge-Acil { background: #ffcc00; color: black; border: 1px solid #000; }
+        .badge-Efsane { background: #00ff00; color: black; }
+
+        .fav-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); border: none; color: #fff; font-size: 20px; cursor: pointer; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.2s; z-index: 11; }
+        .fav-btn.active { color: #ff4444; }
+
+        .araba-img { width: 100%; height: 180px; object-fit: cover; }
+        .kart-body { padding: 15px; }
+        .fiyat { color: #ffcc00; font-size: 22px; font-weight: 800; }
+
+        /* ID KOPYALAMA KUTUSU STİLİ */
+        .id-box { background: #222; padding: 6px; border-radius: 6px; font-size: 11px; color: #ffcc00; cursor: pointer; display: inline-block; margin-top: 8px; border: 1px dashed #444; width: 100%; text-align: center; font-weight: bold; }
+        .id-box:hover { background: #333; border-color: #ffcc00; }
+
+        .sohbet-alani { background: #1a1a1a; padding: 10px; border-top: 1px solid #222; max-height: 100px; overflow-y: auto; font-size: 12px; }
+        .mesaj b { color: #ffcc00; }
+        .mesaj-input-grup { display: flex; padding: 10px; background: #111; gap: 5px; border-top: 1px solid #222; }
+        .mesaj-input-grup input { flex: 1; background: #222; border: 1px solid #333; color: white; padding: 8px; border-radius: 5px; outline: none; }
+        .mesaj-input-grup button { background: #ffcc00; border: none; padding: 5px 12px; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        .btn-sil { background: #ff444422; color: #ff4444; border: 1px solid #ff4444; padding: 8px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
+        .btn-admin { background: #ff4444; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; font-size: 12px; display: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">CAR PARKING MARKET</div>
+    <div class="user-info">
+        <a href="admin.html" id="adminBtn" class="btn-admin">🛡️ ADMIN</a>
+        <span id="aktifUser" style="color:#888; font-size:13px;"></span>
+        <button onclick="cikisYap()" style="background:none; border:none; color:red; cursor:pointer; font-size:12px;">ÇIKIŞ</button>
+    </div>
+</header>
+
+<div class="search-container">
+    <input type="text" id="searchBox" placeholder="Ara..." onkeyup="ilanlariGetir()">
+    <button class="btn-tab active" id="tab-hepsi" onclick="tabSet('hepsi')">Tümü</button>
+    <button class="btn-tab" id="tab-benim" onclick="tabSet('benim')">İlanlarım</button>
+    <button class="btn-tab btn-fav-head" id="tab-fav" onclick="tabSet('fav')">❤️ Favorilerim</button>
+    <a href="ilan-ver.html" style="background:#ffcc00; color:#000; padding:10px 15px; text-decoration:none; border-radius:8px; font-weight:bold; font-size:13px;">+ İlan Ver</a>
+</div>
+
+<div class="container">
+    <div class="ilan-grid" id="anaListe"></div>
+</div>
+
+<script>
+    // 🛡️ GÜVENLİK KALKANI (KOPYACILARA DUR DE!)
+    document.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        alert("Sağ tık yasak kanka, kodlar Apache 2.0 lisanslı GitHub'da var!");
+    });
+
+    document.onkeydown = function(e) {
+        if(e.keyCode == 123 || (e.ctrlKey && (e.keyCode == 'S'.charCodeAt(0) || e.keyCode == 'U'.charCodeAt(0)))) {
+            alert("Koruma devrede! F12 ve Ctrl+S kapalı.");
+            return false;
+        }
+    };
+
+    const girisYapan = localStorage.getItem('oturum');
+    const kullaniciRolu = localStorage.getItem('rol');
+    let aktifTab = 'hepsi';
+
+    if(!girisYapan) window.location.href = "giris.html";
+    if(kullaniciRolu === "admin") document.getElementById('adminBtn').style.display = "block";
+    document.getElementById('aktifUser').innerText = "@" + girisYapan;
+
+    function tabSet(t) {
+        aktifTab = t;
+        document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + t).classList.add('active');
+        ilanlariGetir();
+    }
+
+    function ilanlariGetir() {
+        const ilanlar = JSON.parse(localStorage.getItem('arabalar')) || [];
+        const favoriler = JSON.parse(localStorage.getItem('fav_' + girisYapan)) || [];
+        const arama = document.getElementById('searchBox').value.toLowerCase();
+        const liste = document.getElementById('anaListe');
+        liste.innerHTML = "";
+
+        const filtrelenmis = ilanlar.filter((araba, index) => {
+            const aramaUygun = araba.baslik.toLowerCase().includes(arama);
+            let tabUygun = true;
+            if(aktifTab === 'benim') tabUygun = (araba.sahibi === girisYapan);
+            if(aktifTab === 'fav') tabUygun = favoriler.includes(index);
+            return aramaUygun && tabUygun;
+        });
+
+        filtrelenmis.forEach((araba, gercekIndex) => {
+            const orjinalIndex = ilanlar.findIndex(a => a === araba);
+            const isFav = favoriler.includes(orjinalIndex);
+            const resim = araba.foto || "https://via.placeholder.com/300x180/222/555?text=FOTO+YOK";
+            
+            let etiketHtml = "";
+            if(araba.etiket) {
+                const etiketTipi = araba.etiket.split(' ')[0].replace(/[🔥🔄💎⚠🎨]/g, '').trim();
+                etiketHtml = `<div class="badge badge-${etiketTipi}">${araba.etiket}</div>`;
+            }
+
+            let mesajlar = "";
+            if(araba.mesajlar) araba.mesajlar.forEach(m => {
+                mesajlar += `<div class="mesaj"><b>${m.gonderen}:</b> ${m.metin}</div>`;
+            });
+
+            const silButon = (kullaniciRolu === "admin" || araba.sahibi === girisYapan) 
+                ? `<button class="btn-sil" onclick="ilanSil(${orjinalIndex})">SİL</button>` : '';
+
+            liste.innerHTML += `
+                <div class="kart">
+                    ${etiketHtml}
+                    <button class="fav-btn ${isFav ? 'active' : ''}" onclick="favoriYap(${orjinalIndex})">
+                        ${isFav ? '♥' : '♡'}
+                    </button>
+                    <img src="${resim}" class="araba-img">
+                    <div class="kart-body">
+                        <div class="fiyat">${araba.fiyat}</div>
+                        <div style="font-weight:bold;">${araba.baslik}</div>
+                        <div style="font-size:12px; color:#555;">@${araba.sahibi}</div>
+                        <div class="id-box" onclick="idKopyala('${araba.km}')">🆔 ID: ${araba.km || 'Bilinmiyor'} (Kopyala)</div>
+                        ${silButon}
+                    </div>
+                    <div class="sohbet-alani">${mesajlar || 'Mesaj yok'}</div>
+                    <div class="mesaj-input-grup">
+                        <input type="text" id="in-${orjinalIndex}" placeholder="Pazarlık...">
+                        <button onclick="mesajAt(${orjinalIndex})">></button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // 📋 ID KOPYALAMA FONKSİYONU
+    function idKopyala(id) {
+        if(!id || id === 'undefined') return alert("ID bulunamadı!");
+        navigator.clipboard.writeText(id);
+        alert("ID Kopyalandı: " + id);
+    }
+
+    function favoriYap(id) {
+        let favoriler = JSON.parse(localStorage.getItem('fav_' + girisYapan)) || [];
+        if(favoriler.includes(id)) {
+            favoriler = favoriler.filter(f => f !== id);
+        } else {
+            favoriler.push(id);
+        }
+        localStorage.setItem('fav_' + girisYapan, JSON.stringify(favoriler));
+        ilanlariGetir();
+    }
+
+    function mesajAt(id) {
+        const txt = document.getElementById('in-' + id).value;
+        if(!txt) return;
+        let ilanlar = JSON.parse(localStorage.getItem('arabalar'));
+        if(!ilanlar[id].mesajlar) ilanlar[id].mesajlar = [];
+        ilanlar[id].mesajlar.push({ gonderen: girisYapan, metin: txt });
+        localStorage.setItem('arabalar', JSON.stringify(ilanlar));
+        ilanlariGetir();
+    }
+
+    function ilanSil(id) {
+        if(confirm("İlan silinsin mi?")) {
+            let ilanlar = JSON.parse(localStorage.getItem('arabalar'));
+            ilanlar.splice(id, 1);
+            localStorage.setItem('arabalar', JSON.stringify(ilanlar));
+            ilanlariGetir();
+        }
+    }
+
+    function cikisYap() { localStorage.clear(); window.location.href="giris.html"; }
+    window.onload = ilanlariGetir;
+</script>
+</body>
+</html>
