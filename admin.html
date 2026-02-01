@@ -78,28 +78,25 @@
             }
 
             snapshot.forEach((childSnapshot) => {
-                const araba = childSnapshot.val();
-                const key = childSnapshot.key;
-                sayac++;
+    const araba = childSnapshot.val();
+    const key = childSnapshot.key;
+    sayac++;
 
-                const resimSrc = araba.foto || "https://via.placeholder.com/60x40/222/555?text=Yok";
-                
-                liste.innerHTML += `
-                    <tr>
-                        <td><img src="${resimSrc}" width="60" height="40"></td>
-                        <td>${araba.baslik}</td>
-                        <td style="color:#ffcc00; font-weight:bold;">${araba.fiyat}</td>
-                        <td>@${araba.sahibi}</td>
-                        <td>
-                            <button class="btn-arsiv" onclick="ilaniArsivle('${key}')">ARŞİVE KALDIR</button>
-                        </td>
-                    </tr>
-                `;
-            });
-            document.getElementById('istatistik').innerText = "Sistemdeki Toplam İlan: " + sayac;
-        });
-    }
-
+    // 'foto' yazdığından emin olduk:
+    const resimSrc = araba.foto || "https://via.placeholder.com/60x40/222/555?text=Yok";
+    
+    liste.innerHTML += `
+        <tr>
+            <td><img src="${resimSrc}" width="60" height="40"></td>
+            <td>${araba.baslik}</td>
+            <td style="color:#ffcc00; font-weight:bold;">${araba.fiyat}</td>
+            <td>@${araba.sahibi}</td>
+            <td>
+                <button class="btn-arsiv" onclick="ilaniArsivle('${key}')">ARŞİVE KALDIR</button>
+            </td>
+        </tr>
+    `;
+});
     // --- ARŞİVLEME FONKSİYONU (Silmez, taşır) ---
     function ilaniArsivle(key) {
         if(confirm("Bu ilan pazardan çekilecek ve arşive eklenecek. Onaylıyor musun başkan?")) {
@@ -124,3 +121,4 @@
 </script>
 </body>
 </html>
+
