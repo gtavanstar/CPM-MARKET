@@ -1,63 +1,74 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <link rel="icon" type="image/jpeg" href="favicon.jpg">
     <meta charset="UTF-8">
-    <title>Kayıt Ol | Car Market</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPM Pazar | Kayıt Ol</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        body { background: #000; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .kutu { background: #111; padding: 40px; border-radius: 20px; border: 2px solid #ffcc00; width: 320px; text-align: center; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; background: #222; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
+        body { background: #0a0a0a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #ffcc00; width: 320px; text-align: center; box-shadow: 0 0 20px rgba(255, 204, 0, 0.2); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
         input:focus { border-color: #ffcc00; }
-        .btn { width: 100%; padding: 15px; background: #ffcc00; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; }
-        .admin-not { color: #555; font-size: 11px; margin-top: 10px; font-style: italic; }
-        a { color: #888; text-decoration: none; font-size: 14px; display: block; margin-top: 15px; }
+        button { width: 100%; padding: 12px; background: #ffcc00; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        button:hover { background: #e6b800; transform: scale(1.02); }
+        .switch { font-size: 13px; color: #888; margin-top: 20px; cursor: pointer; display: block; text-decoration: none; }
     </style>
 </head>
 <body>
-    <div class="kutu">
-        <h2 style="color:#ffcc00">HESAP AÇ</h2>
-        <input type="text" id="kullanici" placeholder="Kullanıcı Adı">
-        <input type="password" id="sifre" placeholder="Şifre">
-        
-        <input type="password" id="adminAnahtar" placeholder="Admin Anahtarı (Opsiyonel)">
-        <p class="admin-not">Sadece adminler anahtar girmelidir.</p>
 
-        <button class="btn" onclick="kayitOl()">KAYIT OL</button>
-        <a href="giris.html">Zaten hesabım var</a>
-    </div>
+<div class="login-box">
+    <h2 style="color:#ffcc00; margin-bottom: 20px;">Kayıt Ol</h2>
+    <input type="text" id="user" placeholder="Kullanıcı Adı">
+    <input type="password" id="pass" placeholder="Şifre">
+    <input type="text" id="adminCode" placeholder="Admin Kayıt Kodu (Opsiyonel)">
 
-    <script>
-        function kayitOl() {
-            const k = document.getElementById('kullanici').value.trim();
-            const s = document.getElementById('sifre').value;
-            const anahtar = document.getElementById('adminAnahtar').value;
+    <button onclick="kayitOl()">HESAP OLUŞTUR</button>
+    <a href="giris.html" class="switch">Zaten hesabın var mı? Giriş Yap</a>
+</div>
 
-            // SENİN GİZLİ ADMIN ŞİFREN (Bunu kimseye söyleme kanka)
-            const GERCEK_ADMIN_ANAHTARI = "car123"; 
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCDq7tCjNddgyEa-E3uYWLXNDY05f-bzzY",
+        authDomain: "cpm-market-6d2cb.firebaseapp.com",
+        databaseURL: "https://cpm-market-6d2cb-default-rtdb.firebaseio.com",
+        projectId: "cpm-market-6d2cb",
+        storageBucket: "cpm-market-6d2cb.firebasestorage.app",
+        messagingSenderId: "47092040708",
+        appId: "1:47092040708:web:8a811a9c4a77759a1ce151"
+    };
 
-            if(!k || !s) return alert("Alanları doldur kanka!");
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-            // Kullanıcıyı objeye dönüştürelim ki rolünü de saklayalım
-            const kullanıcıVerisi = {
-                sifre: s,
-                rol: (anahtar === GERCEK_ADMIN_ANAHTARI) ? "admin" : "oyuncu"
-            };
+    function kayitOl() {
+        const u = document.getElementById('user').value.trim().toLowerCase();
+        const p = document.getElementById('pass').value;
+        const aCode = document.getElementById('adminCode').value;
 
-            if(localStorage.getItem('user_' + k)) {
-                return alert("Bu isim zaten alınmış!");
-            }
-            
-            localStorage.setItem('user_' + k, JSON.stringify(kullanıcıVerisi));
-            
-            if(kullanıcıVerisi.rol === "admin") {
-                alert("Tebrikler kanka, ADMIN olarak kayıt oldun!");
+        if(!u || !p) return alert("Kullanıcı adı ve şifre zorunlu!");
+
+        database.ref('kullanicilar/' + u).get().then((snap) => {
+            if(snap.exists()) {
+                alert("Bu kullanıcı adı zaten alınmış!");
             } else {
-                alert("Kaydın başarıyla yapıldı!");
+                let rol = "user";
+                if(aCode === "313131") { // Senin gizli admin kodun
+                    rol = "admin";
+                    alert("Admin yetkisi tanımlandı!");
+                }
+
+                database.ref('kullanicilar/' + u).set({
+                    sifre: p,
+                    rol: rol
+                }).then(() => {
+                    alert("Kayıt Başarılı! Şimdi giriş yapabilirsin.");
+                    window.location.href = "giris.html";
+                });
             }
-            
-            window.location.href = "giris.html";
-        }
-    </script>
+        });
+    }
+</script>
 </body>
 </html>
