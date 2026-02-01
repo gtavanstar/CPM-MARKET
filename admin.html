@@ -62,8 +62,12 @@
     }
 
     function ilanlariYukle() {
+        console.log("Firebase'e bağlanılıyor...");
+        
         db.ref('ilanlar').on('value', (snapshot) => {
             const liste = document.getElementById('adminListe');
+            console.log("Veri geldi mi?", snapshot.exists());
+            
             liste.innerHTML = "";
             let sayac = 0;
 
@@ -77,24 +81,28 @@
                 const araba = childSnapshot.val();
                 const key = childSnapshot.key;
                 sayac++;
-                const resimSrc = araba.foto || "https://via.placeholder.com/60x40/222/555?text=Yok";
+                
+                const resimSrc = araba.foto || araba.resim || "https://via.placeholder.com/60x40/222/555?text=Resim+Yok";
                 
                 liste.innerHTML += `
                     <tr>
                         <td><img src="${resimSrc}" width="60" height="40"></td>
-                        <td>${araba.baslik}</td>
-                        <td style="color:#ffcc00; font-weight:bold;">${araba.fiyat}</td>
-                        <td>@${araba.sahibi}</td>
+                        <td>${araba.baslik || "Başlıksız"}</td>
+                        <td style="color:#ffcc00; font-weight:bold;">${araba.fiyat || "0"}</td>
+                        <td>@${araba.sahibi || "Bilinmiyor"}</td>
                         <td><button class="btn-arsiv" onclick="ilaniArsivle('${key}')">ARŞİVE KALDIR</button></td>
                     </tr>`;
             });
             document.getElementById('istatistik').innerText = "Sistemdeki Toplam İlan: " + sayac;
+        }, (error) => {
+            console.error("Firebase Hatası:", error);
+            alert("Veriler çekilemedi!");
         });
-    } // <-- BURADAKİ KAPATMAYI UNUTMUŞTUN
+    }
 
     function ilaniArsivle(key) {
         if(confirm("Bu ilan pazardan çekilecek ve arşive eklenecek. Onaylıyor musun başkan?")) {
-            db.ref('ilanlar/' + key).get().then((snapshot) => {
+            db.ref('ilanlar/' + key).once('value').then((snapshot) => {
                 if(snapshot.exists()) {
                     const veri = snapshot.val();
                     db.ref('arsiv/' + key).set(veri).then(() => {
