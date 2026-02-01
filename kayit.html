@@ -9,12 +9,13 @@
     <style>
         body { background: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #ffcc00; width: 320px; text-align: center; box-shadow: 0 0 20px rgba(255, 204, 0, 0.2); }
-        h2 { color: #ffcc00; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; outline: none; }
-        input:focus { border-color: #ffcc00; }
-        button { width: 100%; padding: 12px; background: #ffcc00; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        button:hover { background: #e6b800; }
+        h2 { color: #ffcc00; margin-bottom: 20px; font-weight: 800; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus { border-color: #ffcc00; box-shadow: 0 0 5px #ffcc00; }
+        button { width: 100%; padding: 12px; background: #ffcc00; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; color: black; }
+        button:hover { background: #e6b800; transform: translateY(-2px); }
         .link { font-size: 13px; color: #888; margin-top: 20px; display: block; text-decoration: none; }
+        .link:hover { color: #ffcc00; }
     </style>
 </head>
 <body>
@@ -23,14 +24,14 @@
     <h2>Kayıt Ol</h2>
     <input type="text" id="user" placeholder="Kullanıcı Adı">
     <input type="password" id="pass" placeholder="Şifre">
-    <input type="text" id="adminCode" placeholder="Admin Kodu (car123)">
+    <input type="text" id="adminCode" placeholder="Admin Kodu (Opsiyonel)">
 
     <button onclick="kayitOl()">HESABI OLUŞTUR</button>
     <a href="giris.html" class="link">Zaten hesabın var mı? Giriş Yap</a>
 </div>
 
 <script>
-    // Firebase Ayarları
+    // Firebase Yapılandırması
     const firebaseConfig = {
         apiKey: "AIzaSyCDq7tCjNddgyEa-E3uYWLXNDY05f-bzzY",
         authDomain: "cpm-market-6d2cb.firebaseapp.com",
@@ -41,30 +42,58 @@
         appId: "1:47092040708:web:8a811a9c4a77759a1ce151"
     };
 
+    // Firebase'i Başlat
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     function kayitOl() {
-    const u = document.getElementById('user').value.trim().toLowerCase();
-    const p = document.getElementById('pass').value;
-    const code = document.getElementById('adminCode').value;
+        const u = document.getElementById('user').value.trim().toLowerCase();
+        const p = document.getElementById('pass').value;
+        const code = document.getElementById('adminCode').value.trim();
 
-    if(!u || !p) return alert("Kullanıcı adı ve şifre boş!");
+        // 1. Boşluk Kontrolü
+        if(!u || !p) {
+            alert("Kullanıcı adı ve şifre boş bırakılamaz!");
+            return;
+        }
 
-    console.log("Kayıt denemesi başlıyor..."); // Konsola yazar
+        // 2. Kullanıcı Adı Uzunluğu (Opsiyonel ama iyi olur)
+        if(u.length < 3) {
+            alert("Kullanıcı adı en az 3 karakter olmalı!");
+            return;
+        }
 
-    db.ref('kullanicilar/' + u).set({
-        sifre: p,
-        rol: (code === "car123") ? "admin" : "user"
-    }).then(() => {
-        alert("KAYIT BAŞARILI! Girişe gidiyorsun.");
-        window.location.href = "giris.html";
-    }).catch(err => {
-        alert("FİREBASE HATASI: " + err.message); // Hata varsa burası patlar
-        console.error(err);
-    });
-}
+        console.log("Kayıt denemesi yapılıyor: ", u);
+
+        // 3. Veritabanında Kontrol Et ve Yaz
+        db.ref('kullanicilar/' + u).get().then((snapshot) => {
+            if (snapshot.exists()) {
+                alert("Bu kullanıcı adı zaten alınmış! Lütfen başka bir isim seç.");
+            } else {
+                // Admin kodu kontrolü
+                let rol = "user";
+                if(code === "car123") {
+                    rol = "admin";
+                    alert("Admin kodu kabul edildi! Kayıt tamamlanıyor...");
+                }
+
+                // Veriyi Yazma
+                db.ref('kullanicilar/' + u).set({
+                    sifre: p,
+                    rol: rol,
+                    kayitTarihi: new Date().toISOString()
+                }).then(() => {
+                    alert("KAYIT BAŞARILI! Şimdi giriş yapabilirsin.");
+                    window.location.href = "giris.html";
+                }).catch(err => {
+                    alert("FİREBASE YAZMA HATASI: " + err.message);
+                });
+            }
+        }).catch(err => {
+            alert("BAĞLANTI HATASI: " + err.message);
+            console.error(err);
+        });
+    }
 </script>
 </body>
 </html>
-
