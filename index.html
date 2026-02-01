@@ -44,9 +44,12 @@
         .kart-body { padding: 15px; }
         .fiyat { color: #ffcc00; font-size: 22px; font-weight: 800; }
 
-        /* ID KOPYALAMA KUTUSU STİLİ */
         .id-box { background: #222; padding: 6px; border-radius: 6px; font-size: 11px; color: #ffcc00; cursor: pointer; display: inline-block; margin-top: 8px; border: 1px dashed #444; width: 100%; text-align: center; font-weight: bold; }
         .id-box:hover { background: #333; border-color: #ffcc00; }
+
+        /* RAPOR BUTONU STİLİ */
+        .btn-rapor { background: #ff444422; color: #ff4444; border: 1px solid #ff4444; padding: 6px; border-radius: 6px; font-size: 11px; cursor: pointer; display: inline-block; margin-top: 5px; width: 100%; text-align: center; font-weight: bold; transition: 0.3s; }
+        .btn-rapor:hover { background: #ff4444; color: #fff; }
 
         .sohbet-alani { background: #1a1a1a; padding: 10px; border-top: 1px solid #222; max-height: 100px; overflow-y: auto; font-size: 12px; }
         .mesaj b { color: #ffcc00; }
@@ -81,16 +84,11 @@
 </div>
 
 <script>
-    // 🛡️ GÜVENLİK KALKANI (KOPYACILARA DUR DE!)
-    document.addEventListener('contextmenu', e => {
-        e.preventDefault();
-        alert("Sağ tık yasak kanka, kodlar Apache 2.0 lisanslı GitHub'da var!");
-    });
-
+    // 🛡️ GÜVENLİK
+    document.addEventListener('contextmenu', e => { e.preventDefault(); alert("Kodlar Apache 2.0 lisanslı GitHub'da var!"); });
     document.onkeydown = function(e) {
         if(e.keyCode == 123 || (e.ctrlKey && (e.keyCode == 'S'.charCodeAt(0) || e.keyCode == 'U'.charCodeAt(0)))) {
-            alert("Koruma devrede! F12 ve Ctrl+S kapalı.");
-            return false;
+            alert("Koruma devrede!"); return false;
         }
     };
 
@@ -154,7 +152,8 @@
                         <div class="fiyat">${araba.fiyat}</div>
                         <div style="font-weight:bold;">${araba.baslik}</div>
                         <div style="font-size:12px; color:#555;">@${araba.sahibi}</div>
-                        <div class="id-box" onclick="idKopyala('${araba.km}')">🆔 ID: ${araba.km || 'Bilinmiyor'} (Kopyala)</div>
+                        <div class="id-box" onclick="idKopyala('${araba.km}')">🆔 ID: ${araba.km || 'Bilinmiyor'}</div>
+                        <button class="btn-rapor" onclick="ilanRaporla('${araba.baslik}', '${araba.sahibi}', '${araba.km}')">🚫 UYGUNSUZ İLAN RAPORLA</button>
                         ${silButon}
                     </div>
                     <div class="sohbet-alani">${mesajlar || 'Mesaj yok'}</div>
@@ -167,20 +166,29 @@
         });
     }
 
-    // 📋 ID KOPYALAMA FONKSİYONU
+    // 🚩 RAPORLAMA FONKSİYONU
+    function ilanRaporla(baslik, sahibi, id) {
+        const sebep = prompt("Neden raporluyorsunuz? (+18, Dolandırıcılık, Küfür vb.)");
+        if(!sebep) return;
+
+        const email = "coredeathplay@outlook.com.tr";
+        const konu = "CPM MARKET RAPOR: " + baslik;
+        const mesaj = `Raporlayan: ${girisYapan}%0D%0Aİlan Sahibi: ${sahibi}%0D%0Aİlan ID: ${id}%0D%0ASebep: ${sebep}`;
+        
+        window.location.href = `mailto:${email}?subject=${konu}&body=${mesaj}`;
+        alert("Rapor taslağı oluşturuldu. Lütfen maili gönder butonuna basın.");
+    }
+
     function idKopyala(id) {
-        if(!id || id === 'undefined') return alert("ID bulunamadı!");
+        if(!id || id === 'undefined') return alert("ID yok!");
         navigator.clipboard.writeText(id);
-        alert("ID Kopyalandı: " + id);
+        alert("ID Kopyalandı!");
     }
 
     function favoriYap(id) {
         let favoriler = JSON.parse(localStorage.getItem('fav_' + girisYapan)) || [];
-        if(favoriler.includes(id)) {
-            favoriler = favoriler.filter(f => f !== id);
-        } else {
-            favoriler.push(id);
-        }
+        if(favoriler.includes(id)) { favoriler = favoriler.filter(f => f !== id); } 
+        else { favoriler.push(id); }
         localStorage.setItem('fav_' + girisYapan, JSON.stringify(favoriler));
         ilanlariGetir();
     }
@@ -196,7 +204,7 @@
     }
 
     function ilanSil(id) {
-        if(confirm("İlan silinsin mi?")) {
+        if(confirm("Silinsin mi?")) {
             let ilanlar = JSON.parse(localStorage.getItem('arabalar'));
             ilanlar.splice(id, 1);
             localStorage.setItem('arabalar', JSON.stringify(ilanlar));
