@@ -1,38 +1,58 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+    <link rel="icon" type="image/jpeg" href="favicon.jpg">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İlan Ver | Online</title>
+    <title>İlan Ver | CPM MARKET</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; padding: 20px; display: flex; justify-content: center; }
-        .form-container { width: 100%; max-width: 400px; background: #111; padding: 25px; border-radius: 15px; border: 1px solid #ffcc00; }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; outline: none; }
-        button { background: #ffcc00; color: #000; font-weight: bold; border: none; cursor: pointer; margin-top: 15px; transition: 0.3s; }
-        button:hover { background: #e6b800; }
-        .back { color: #888; text-align: center; display: block; text-decoration: none; font-size: 13px; margin-top: 10px; }
+        body { background: #000; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .form-kutu { background: #111; padding: 30px; border-radius: 20px; border: 2px solid #ffcc00; width: 350px; margin: 20px; }
+        h2 { color: #ffcc00; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        label { color: #888; font-size: 12px; display: block; margin-bottom: 5px; margin-top: 10px; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; background: #222; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
+        input:focus, select:focus { border-color: #ffcc00; }
+        .kaydet { width: 100%; padding: 15px; background: #ffcc00; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; font-size: 16px; margin-top: 20px; transition: 0.3s; }
+        .kaydet:hover { background: #fff; transform: scale(1.02); }
+        .iptal { display: block; text-align: center; margin-top: 15px; color: #555; text-decoration: none; font-size: 14px; }
     </style>
 </head>
 <body>
-<div class="form-container">
-    <h2 style="color:#ffcc00; margin-bottom:15px;">Yeni İlan Ver</h2>
-    <input type="text" id="baslik" placeholder="İlan Başlığı">
-    <input type="text" id="fiyat" placeholder="Fiyat (Örn: 10M)">
-    <input type="text" id="km" placeholder="Oyun İçi ID'niz">
-    <input type="text" id="foto" placeholder="Fotoğraf Linki (Hızlıresim vb.)">
+
+<div class="form-kutu">
+    <h2>ARAÇ EKLE</h2>
+    
+    <label>ARAÇ İSMİ</label>
+    <input type="text" id="baslik" placeholder="Örn: BMW M5 E60">
+    
+    <label>FİYAT (Oyun İçi Para)</label>
+    <input type="text" id="fiyat" placeholder="Örn: 50.000.000$">
+    
+    <label>KİLOMETRE / MOTOR</label>
+    <input type="text" id="km" placeholder="Örn: 1500 KM / 1695 HP">
+    
+    <label>ARAÇ ETİKETİ (ÖZELLİK)</label>
     <select id="etiket">
-        <option value="">Etiket Seçin</option>
-        <option value="🔥 Hız">Hız Canavarı</option>
-        <option value="🔄 Takaslık">Takaslık</option>
-        <option value="💎 Koleksiyon">Koleksiyonluk</option>
+        <option value="">Özellik Yok</option>
+        <option value="Hız Canavarı">🔥 Hız Canavarı</option>
+        <option value="Takaslık">🔄 Takasa Açık</option>
+        <option value="Koleksiyonluk">💎 Koleksiyonluk</option>
+        <option value="Acil Satılık">⚠ Acil Satılık</option>
+        <option value="Efsane Tasarım">🎨 Efsane Tasarım</option>
     </select>
-    <button onclick="yayinla()">YAYINLA</button>
-    <a href="index.html" class="back">Geri Dön</a>
+    
+    <label>ARAÇ FOTOĞRAFI (Dosya Seç)</label>
+    <input type="file" id="foto" accept="image/*">
+
+    <button class="kaydet" onclick="veriyiKaydet()">PAZARA GÖNDER</button>
+    <a href="index.html" class="iptal">Vazgeç ve Dön</a>
 </div>
 
 <script>
+    // 🚩 BURAYI KENDİ BİLGİLERİNLE DOLDUR KANKA
     const firebaseConfig = {
         apiKey: "AIzaSyCDq7tCjNddgyEa-E3uYWLXNDY05f-bzzY",
         authDomain: "cpm-market-6d2cb.firebaseapp.com",
@@ -42,34 +62,54 @@
         messagingSenderId: "47092040708",
         appId: "1:47092040708:web:8a811a9c4a77759a1ce151"
     };
+
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    const girisYapan = localStorage.getItem('oturum') || "Anonim";
+    const db = firebase.database();
 
-    function yayinla() {
-        const b = document.getElementById('baslik').value.trim();
-        const f = document.getElementById('fiyat').value.trim();
-        const k = document.getElementById('km').value.trim();
-        const fo = document.getElementById('foto').value.trim();
-        const e = document.getElementById('etiket').value;
+    function veriyiKaydet() {
+        const baslik = document.getElementById('baslik').value;
+        const fiyat = document.getElementById('fiyat').value;
+        const km = document.getElementById('km').value;
+        const etiket = document.getElementById('etiket').value;
+        const fotoInput = document.getElementById('foto');
+        
+        // localStorage yerine Firebase'den o anki kullanıcıyı alıyoruz
+        const aktifKullanici = localStorage.getItem('oturum') || "Anonim";
 
-        if(!b || !f || !k) return alert("Başlık, Fiyat ve ID kısımlarını doldur kanka!");
+        if(!baslik || !fiyat) { 
+            alert("İsim ve fiyat boş olamaz kanka!"); 
+            return; 
+        }
 
-        // DİKKAT: Artık 'ilanlar' klasörüne kaydediyoruz ki Admin Paneli ile aynı olsun!
-        database.ref('ilanlar').push({
-            baslik: b,
-            fiyat: f,
-            km: k,
-            foto: fo,
-            etiket: e,
-            sahibi: girisYapan,
-            tarih: Date.now()
-        }).then(() => {
-            alert("İlan Yayında! Admin panelinden kontrol edebilirsin.");
-            window.location.href = "index.html";
-        }).catch(err => {
-            alert("Hata oluştu: " + err.message);
-        });
+        const reader = new FileReader();
+        
+        if (fotoInput.files[0]) {
+            reader.readAsDataURL(fotoInput.files[0]);
+            reader.onload = function () {
+                bulutaGonder(reader.result);
+            };
+        } else {
+            bulutaGonder(""); 
+        }
+
+        function bulutaGonder(fotoData) {
+            // BURASI SİHRİN GERÇEKLEŞTİĞİ YER: Firebase 'arabalar' klasörüne push
+            db.ref('arabalar').push({ 
+                baslik: baslik, 
+                fiyat: fiyat, 
+                km: km, 
+                etiket: etiket,
+                foto: fotoData,
+                sahibi: aktifKullanici,
+                tarih: Date.now(),
+                durum: "AKTIF"
+            }).then(() => {
+                alert("İlanın CPM MARKET'e düştü babyyy!");
+                window.location.href = "index.html";
+            }).catch((error) => {
+                alert("Hata: " + error.message);
+            });
+        }
     }
 </script>
 </body>
