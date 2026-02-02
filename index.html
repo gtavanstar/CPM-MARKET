@@ -4,51 +4,75 @@
     <link rel="icon" type="image/jpeg" href="favicon.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car Parking | Pazar (Online)</title>
+    <title>CPM MARKET | Pazar (Online)</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background: #0a0a0a; color: #fff; padding-bottom: 50px; }
+        
+        /* Header Ayarları */
         header { background: #111; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ffcc00; position: sticky; top: 0; z-index: 1000; }
-        .logo { color: #ffcc00; font-size: 22px; font-weight: 900; }
-        .search-container { background: #111; padding: 20px 5%; display: flex; gap: 10px; flex-wrap: wrap; }
+        .logo { color: #ffcc00; font-size: 22px; font-weight: 900; letter-spacing: 1px; }
+        
+        /* 🚨 KRİTİK UYARI KUTUSU */
+        .pazar-uyari { background: rgba(255, 68, 68, 0.1); border: 1px dashed #ff4444; padding: 15px; margin: 20px 5%; border-radius: 10px; text-align: center; animation: glow 2s infinite; }
+        @keyframes glow { 0% { border-color: #ff4444; } 50% { border-color: #ffcc00; } 100% { border-color: #ff4444; } }
+        
+        .search-container { background: #111; padding: 20px 5%; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
         #searchBox { flex: 1; min-width: 200px; padding: 12px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; outline: none; }
-        .btn-tab { background: #222; color: #888; border: none; padding: 10px 15px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 13px; }
+        
+        .btn-tab { background: #222; color: #888; border: none; padding: 10px 15px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 13px; transition: 0.3s; }
         .btn-tab.active { background: #ffcc00; color: #000; }
-        .ilan-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding: 20px 5%; }
+        
+        /* İlan Kartları */
+        .ilan-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding: 10px 5%; }
         .kart { background: #161616; border: 1px solid #222; border-radius: 15px; overflow: hidden; position: relative; transition: 0.3s; display: flex; flex-direction: column; }
-        .kart:hover { border-color: #ffcc00; }
-        .badge { position: absolute; top: 10px; right: 10px; padding: 5px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; z-index: 10; background: #ffcc00; color: #000; }
-        .araba-img { width: 100%; height: 180px; object-fit: cover; }
+        .kart:hover { border-color: #ffcc00; transform: translateY(-5px); }
+        
+        .badge { position: absolute; top: 10px; right: 10px; padding: 5px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; z-index: 10; background: #ffcc00; color: #000; box-shadow: 0 0 10px rgba(255,204,0,0.3); }
+        .araba-img { width: 100%; height: 180px; object-fit: cover; background: #222; }
+        
         .kart-body { padding: 15px; flex-grow: 1; }
-        .fiyat { color: #ffcc00; font-size: 22px; font-weight: 800; }
-        .id-box { background: #222; padding: 6px; border-radius: 6px; font-size: 11px; color: #ffcc00; cursor: pointer; display: block; margin-top: 8px; border: 1px dashed #444; text-align: center; }
-        .btn-rapor { background: #ff444422; color: #ff4444; border: 1px solid #ff4444; padding: 6px; border-radius: 6px; font-size: 11px; cursor: pointer; width: 100%; margin-top: 5px; font-weight: bold; }
-        .btn-sil { background: #ff444422; color: #ff4444; border: 1px solid #ff4444; padding: 8px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; }
-        .btn-admin { background: #ff4444; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; font-size: 12px; display: none; }
-        .chat-container { background: #1a1a1a; padding: 10px; border-top: 1px solid #222; max-height: 100px; overflow-y: auto; }
+        .fiyat { color: #ffcc00; font-size: 22px; font-weight: 800; margin-bottom: 5px; }
+        .id-box { background: #222; padding: 8px; border-radius: 6px; font-size: 12px; color: #ffcc00; cursor: pointer; display: block; margin-top: 10px; border: 1px dashed #444; text-align: center; font-family: monospace; }
+        
+        .btn-rapor { background: none; color: #ff4444; border: 1px solid #ff4444; padding: 6px; border-radius: 6px; font-size: 11px; cursor: pointer; width: 100%; margin-top: 8px; font-weight: bold; transition: 0.3s; }
+        .btn-rapor:hover { background: #ff4444; color: #fff; }
+        
+        .btn-sil { background: #ff4444; color: #fff; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
+        .btn-admin { background: #ff4444; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; font-size: 12px; font-weight: bold; }
+        
+        .chat-container { background: #111; padding: 10px; border-top: 1px solid #222; max-height: 120px; overflow-y: auto; }
     </style>
 </head>
 <body>
 
 <header>
     <div class="logo">CPM MARKET</div>
-    <div class="user-info">
-        <a href="admin.html" id="adminBtn" class="btn-admin">🛡️ ADMIN</a>
-        <span id="aktifUser" style="color:#888; font-size:13px;"></span>
-        <button onclick="cikisYap()" style="background:none; border:none; color:red; cursor:pointer; margin-left:10px;">ÇIKIŞ</button>
+    <div class="user-info" style="display: flex; align-items: center; gap: 15px;">
+        <a href="admin.html" id="adminBtn" class="btn-admin" style="display: none;">🛡️ ADMIN</a>
+        <span id="aktifUser" style="color:#ffcc00; font-weight: bold;"></span>
+        <button onclick="cikisYap()" style="background:#222; border:1px solid #444; color:#fff; padding: 5px 10px; border-radius: 5px; cursor:pointer; font-size: 11px;">ÇIKIŞ</button>
     </div>
 </header>
 
-<div class="search-container">
-    <input type="text" id="searchBox" placeholder="İlan Ara..." onkeyup="ilanlariGetir()">
-    <button class="btn-tab active" id="tab-hepsi" onclick="tabSet('hepsi')">Tümü</button>
-    <button class="btn-tab" id="tab-benim" onclick="tabSet('benim')">İlanlarım</button>
-    <a href="ilan-ver.html" style="background:#ffcc00; color:#000; padding:10px 15px; text-decoration:none; border-radius:8px; font-weight:bold;">+ İlan Ver</a>
+<div class="pazar-uyari">
+    <strong style="color: #ff4444;">📢 ÖNEMLİ DUYURU:</strong> 
+    <span style="font-size: 14px; margin-left: 5px;">
+        Lütfen <b>SATILAN</b> veya <b>ESKİ</b> ilanlarınızı siliniz! Pazarı temiz tutalım kanka. 🏎️💨
+    </span>
 </div>
 
-<div class="ilan-grid" id="anaListe"></div>
+<div class="search-container">
+    <input type="text" id="searchBox" placeholder="Araç veya Satıcı Ara..." onkeyup="ilanlariGetir()">
+    <button class="btn-tab active" id="tab-hepsi" onclick="tabSet('hepsi')">Tümü</button>
+    <button class="btn-tab" id="tab-benim" onclick="tabSet('benim')">İlanlarım</button>
+    <a href="ilan-ver.html" style="background:#ffcc00; color:#000; padding:12px 20px; text-decoration:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 15px rgba(255,204,0,0.2);">+ İLAN VER</a>
+</div>
+
+<div class="ilan-grid" id="anaListe">
+    </div>
 
 <script>
     const firebaseConfig = {
@@ -63,6 +87,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    
     const girisYapan = localStorage.getItem('oturum');
     const kullaniciRolu = localStorage.getItem('rol');
     let aktifTab = 'hepsi';
@@ -89,19 +114,19 @@
                 const fbId = childSnapshot.key;
 
                 if (aktifTab === 'benim' && araba.sahibi !== girisYapan) return;
-                if (arama && !araba.baslik.toLowerCase().includes(arama)) return;
+                if (arama && !(araba.baslik.toLowerCase().includes(arama) || araba.sahibi.toLowerCase().includes(arama))) return;
 
-                const resim = araba.foto || "https://via.placeholder.com/300x180/222/555?text=FOTO+YOK";
+                const resim = araba.foto || "https://dummyimage.com/300x180/222/555&text=FOTO+YOK";
                 
                 let mesajlarHtml = "";
                 if(araba.mesajlar) {
-                    Object.values(araba.mesajlar).forEach(m => {
-                        mesajlarHtml += `<div style="font-size:11px; margin-bottom:2px;"><b style="color:#ffcc00;">${m.gonderen}:</b> ${m.metin}</div>`;
+                    Object.values(araba.mesajlar).slice(-3).forEach(m => { // Son 3 mesajı göster
+                        mesajlarHtml += `<div style="font-size:11px; margin-bottom:3px; border-left: 2px solid #ffcc00; padding-left: 5px;"><b style="color:#ffcc00;">${m.gonderen}:</b> ${m.metin}</div>`;
                     });
                 }
 
                 const silButon = (kullaniciRolu === "admin" || araba.sahibi === girisYapan) 
-                    ? `<button class="btn-sil" onclick="ilanSil('${fbId}')">SİL</button>` : '';
+                    ? `<button class="btn-sil" onclick="ilanSil('${fbId}')">İLANIMI SİL</button>` : '';
 
                 liste.innerHTML += `
                     <div class="kart">
@@ -109,18 +134,18 @@
                         <img src="${resim}" class="araba-img">
                         <div class="kart-body">
                             <div class="fiyat">${araba.fiyat}</div>
-                            <div style="font-weight:bold;">${araba.baslik}</div>
-                            <div style="font-size:12px; color:#888;">@${araba.sahibi}</div>
-                            <div class="id-box" onclick="idKopyala('${araba.km}')">🆔 ID: ${araba.km}</div>
-                            <button class="btn-rapor" onclick="ilanRaporla('${araba.baslik}', '${araba.sahibi}', '${araba.km}')">🚫 RAPORLA</button>
+                            <div style="font-weight:bold; font-size:16px;">${araba.baslik}</div>
+                            <div style="font-size:12px; color:#888; margin-top:5px;">👤 Satıcı: @${araba.sahibi}</div>
+                            <div class="id-box" onclick="idKopyala('${araba.km}')">🆔 ID: ${araba.km} (Kopyala)</div>
+                            <button class="btn-rapor" onclick="ilanRaporla('${araba.baslik}', '${araba.sahibi}', '${araba.km}')">🚫 İLANI RAPORLA</button>
                             ${silButon}
                         </div>
                         <div class="chat-container">
                             ${mesajlarHtml || '<span style="color:#444; font-size:11px;">Henüz teklif yok...</span>'}
                         </div>
-                        <div style="display:flex; padding:5px; background:#111; border-top:1px solid #222;">
-                            <input type="text" id="input-${fbId}" placeholder="Pazarlık yap..." style="flex:1; background:#222; border:1px solid #333; color:white; padding:5px; font-size:12px; border-radius:4px;">
-                            <button onclick="mesajGonder('${fbId}')" style="background:#ffcc00; border:none; padding:5px 10px; margin-left:5px; cursor:pointer; border-radius:4px; font-weight:bold;">></button>
+                        <div style="display:flex; padding:8px; background:#1a1a1a; border-top:1px solid #222;">
+                            <input type="text" id="input-${fbId}" placeholder="Pazarlık yap..." style="flex:1; background:#222; border:1px solid #333; color:white; padding:8px; font-size:12px; border-radius:5px; outline:none;">
+                            <button onclick="mesajGonder('${fbId}')" style="background:#ffcc00; border:none; padding:5px 12px; margin-left:5px; cursor:pointer; border-radius:5px; font-weight:bold;">></button>
                         </div>
                     </div>`;
             });
@@ -141,26 +166,37 @@
         });
     }
 
-    // --- YENİ ONLINE RAPORLAMA ---
     function ilanRaporla(baslik, sahibi, id) {
-        const sebep = prompt("Neden raporluyorsunuz? (Örn: Hatalı ID, Dolandırıcılık)");
+        const sebep = prompt("Neden raporluyorsunuz? (Hatalı ID, Küfür, Dolandırıcılık)");
         if(!sebep) return;
 
         database.ref('raporlar').push({
             ilan: baslik,
             sahibi: sahibi,
-            id: id,
+            aracId: id,
             sikayetEden: girisYapan,
             neden: sebep,
             tarih: new Date().toLocaleString()
         }).then(() => {
-            alert("Raporun merkeze iletildi kanka! Admin bakacak.");
+            alert("Rapor merkeze ulaştı kanka. Admin en kısa sürede bakacak!");
         });
     }
 
-    function ilanSil(id) { if(confirm("Silinsin mi?")) database.ref('arabalar/' + id).remove(); }
-    function idKopyala(id) { navigator.clipboard.writeText(id); alert("ID Kopyalandı!"); }
-    function cikisYap() { localStorage.clear(); window.location.href="giris.html"; }
+    function ilanSil(id) {
+        if(confirm("Bu ilanı silmek istediğine emin misin? (İşlem geri alınamaz)")) {
+            database.ref('arabalar/' + id).remove();
+        }
+    }
+
+    function idKopyala(id) {
+        navigator.clipboard.writeText(id);
+        alert("ID Kopyalandı! Oyuna girince yapıştırabilirsin.");
+    }
+
+    function cikisYap() {
+        localStorage.clear();
+        window.location.href="giris.html";
+    }
     
     window.onload = ilanlariGetir;
 </script>
