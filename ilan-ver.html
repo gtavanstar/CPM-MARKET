@@ -4,20 +4,22 @@
     <link rel="icon" type="image/jpeg" href="favicon.jpg">
     <meta charset="UTF-8">
     <title>İlan Ver | CPM MARKET</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     
     <style>
         body { background: #000; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .form-kutu { background: #111; padding: 30px; border-radius: 20px; border: 2px solid #ffcc00; width: 350px; margin: 20px; }
+        .form-kutu { background: #111; padding: 30px; border-radius: 20px; border: 2px solid #ffcc00; width: 350px; margin: 20px; box-shadow: 0 0 20px rgba(255, 204, 0, 0.1); }
         h2 { color: #ffcc00; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
-        label { color: #888; font-size: 12px; display: block; margin-bottom: 5px; margin-top: 10px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; background: #222; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
-        input:focus, select:focus { border-color: #ffcc00; }
-        .kaydet { width: 100%; padding: 15px; background: #ffcc00; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; font-size: 16px; margin-top: 20px; transition: 0.3s; }
+        label { color: #888; font-size: 12px; display: block; margin-bottom: 5px; margin-top: 10px; font-weight: bold; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; background: #222; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus, select:focus { border-color: #ffcc00; background: #282828; }
+        .kaydet { width: 100%; padding: 15px; background: #ffcc00; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; font-size: 16px; margin-top: 20px; transition: 0.3s; text-transform: uppercase; }
         .kaydet:hover { background: #fff; transform: scale(1.02); }
-        .iptal { display: block; text-align: center; margin-top: 15px; color: #555; text-decoration: none; font-size: 14px; }
+        .iptal { display: block; text-align: center; margin-top: 15px; color: #555; text-decoration: none; font-size: 14px; transition: 0.3s; }
+        .iptal:hover { color: #ff4444; }
     </style>
 </head>
 <body>
@@ -37,14 +39,14 @@
     <label>ARAÇ ETİKETİ (ÖZELLİK)</label>
     <select id="etiket">
         <option value="">Özellik Yok</option>
-        <option value="Hız Canavarı">🔥 Hız Canavarı</option>
-        <option value="Takaslık">🔄 Takasa Açık</option>
-        <option value="Koleksiyonluk">💎 Koleksiyonluk</option>
-        <option value="Acil Satılık">⚠ Acil Satılık</option>
-        <option value="Efsane Tasarım">🎨 Efsane Tasarım</option>
+        <option value="🔥 Hız Canavarı">🔥 Hız Canavarı</option>
+        <option value="🔄 Takasa Açık">🔄 Takasa Açık</option>
+        <option value="💎 Koleksiyonluk">💎 Koleksiyonluk</option>
+        <option value="⚠ Acil Satılık">⚠ Acil Satılık</option>
+        <option value="🎨 Efsane Tasarım">🎨 Efsane Tasarım</option>
     </select>
     
-    <label>ARAÇ FOTOĞRAFI (Dosya Seç)</label>
+    <label>ARAÇ FOTOĞRAFI</label>
     <input type="file" id="foto" accept="image/*">
 
     <button class="kaydet" onclick="veriyiKaydet()">PAZARA GÖNDER</button>
@@ -52,7 +54,7 @@
 </div>
 
 <script>
-    // 🚩 BURAYI KENDİ BİLGİLERİNLE DOLDUR KANKA
+    // Firebase Yapılandırması
     const firebaseConfig = {
         apiKey: "AIzaSyCDq7tCjNddgyEa-E3uYWLXNDY05f-bzzY",
         authDomain: "cpm-market-6d2cb.firebaseapp.com",
@@ -63,7 +65,10 @@
         appId: "1:47092040708:web:8a811a9c4a77759a1ce151"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    // Firebase Başlat
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.database();
 
     function veriyiKaydet() {
@@ -73,13 +78,17 @@
         const etiket = document.getElementById('etiket').value;
         const fotoInput = document.getElementById('foto');
         
-        // localStorage yerine Firebase'den o anki kullanıcıyı alıyoruz
-        const aktifKullanici = localStorage.getItem('oturum') || "Anonim";
+        // Giriş yapan kullanıcıyı al (veya Anonim)
+        const aktifKullanici = localStorage.getItem('oturum') || "HamzaPepe_User";
 
         if(!baslik || !fiyat) { 
-            alert("İsim ve fiyat boş olamaz kanka!"); 
+            alert("HamzaPepe uyarır: İsim ve fiyatı boş bırakamazsın!"); 
             return; 
         }
+
+        const btn = document.querySelector('.kaydet');
+        btn.disabled = true;
+        btn.innerText = "GÖNDERİLİYOR...";
 
         const reader = new FileReader();
         
@@ -89,11 +98,10 @@
                 bulutaGonder(reader.result);
             };
         } else {
-            bulutaGonder(""); 
+            bulutaGonder("https://dummyimage.com/600x400/222/ffcc00&text=CPM+MARKET"); 
         }
 
         function bulutaGonder(fotoData) {
-            // BURASI SİHRİN GERÇEKLEŞTİĞİ YER: Firebase 'arabalar' klasörüne push
             db.ref('arabalar').push({ 
                 baslik: baslik, 
                 fiyat: fiyat, 
@@ -102,12 +110,14 @@
                 foto: fotoData,
                 sahibi: aktifKullanici,
                 tarih: Date.now(),
-                durum: "AKTIF"
+                durum: "AKTIF" // Yeni ilanlar varsayılan olarak aktif
             }).then(() => {
-                alert("İlanın CPM MARKET'e düştü babyyy!");
+                alert("İlanın CPM MARKET'e düştü babyyy! Bol satışlar.");
                 window.location.href = "index.html";
             }).catch((error) => {
-                alert("Hata: " + error.message);
+                alert("Hata oluştu: " + error.message);
+                btn.disabled = false;
+                btn.innerText = "PAZARA GÖNDER";
             });
         }
     }
